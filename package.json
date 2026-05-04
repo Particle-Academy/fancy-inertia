@@ -1,0 +1,75 @@
+{
+  "name": "@particle-academy/fancy-inertia",
+  "version": "0.1.0",
+  "description": "Inertia.js integration for the fancy UI set — app-shell providers, SSR helpers, useForm bridge, schema-driven page rendering, fancy-screens persistence across Inertia navigation.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Particle-Academy/fancy-inertia.git"
+  },
+  "homepage": "https://github.com/Particle-Academy/fancy-inertia#readme",
+  "bugs": "https://github.com/Particle-Academy/fancy-inertia/issues",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "tsup"
+  },
+  "keywords": [
+    "react",
+    "inertia",
+    "inertiajs",
+    "laravel",
+    "ssr",
+    "particle-academy"
+  ],
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "@inertiajs/react": "^1.0.0 || ^2.0.0",
+    "@particle-academy/react-fancy": "^3.0.0",
+    "@particle-academy/fancy-screens": "^0.2.0",
+    "@particle-academy/fancy-echarts": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@particle-academy/fancy-echarts": { "optional": true },
+    "@particle-academy/fancy-screens": { "optional": true }
+  },
+  "devDependencies": {
+    "@inertiajs/react": "^2.0.0",
+    "@particle-academy/fancy-echarts": "^3.0.0",
+    "@particle-academy/fancy-screens": "^0.2.0",
+    "@particle-academy/react-fancy": "^3.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}
