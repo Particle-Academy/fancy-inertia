@@ -149,17 +149,19 @@ function isInertiaForm<T>(x: unknown): x is InertiaForm<T> {
 }
 
 /**
- * Adapter that lazy-imports @inertiajs/react's useForm at call time.
+ * Adapter that resolves @inertiajs/react's useForm at call time.
  * If the consumer hasn't installed Inertia (using fancy-inertia outside
  * of an Inertia app for code-sharing), throws a descriptive error.
+ *
+ * Uses CommonJS `require` to keep this synchronous (it's called from a
+ * React hook, so async dynamic import would change the API contract).
  */
+declare const require: (name: string) => unknown;
+
 function useInertiaFormShim<TData extends Record<string, unknown>>(initial: TData): InertiaForm<TData> {
-  // Avoid static import so non-Inertia consumers don't pay the cost.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   let mod: { useForm: (data: TData) => InertiaForm<TData> };
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    mod = require("@inertiajs/react") as typeof mod;
+    mod = require("@inertiajs/react") as { useForm: (data: TData) => InertiaForm<TData> };
   } catch {
     throw new Error(
       "[fancy-inertia] useFancyForm() needs `@inertiajs/react` installed. " +
