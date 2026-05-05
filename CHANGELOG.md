@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.1] — 2026-05-05
+
+### Changed
+- Switched publish workflow to OIDC Trusted Publisher (no `NODE_AUTH_TOKEN`).
+  Bootstrap token used for the initial 0.1.0 publish has been revoked.
+  Subsequent releases ship via GitHub Actions OIDC — zero token handling.
+
+No code changes.
+
 ## [0.1.0] — 2026-05-04
 
 Initial release.
