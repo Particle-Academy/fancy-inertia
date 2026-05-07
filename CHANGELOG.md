@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.2] — 2026-05-07
+
+### Fixed
+- Widened `@inertiajs/react` peer dependency to include `^3.0.0`. Apps on Inertia v3 were hitting a peer-dep mismatch despite the README claiming v1+ support.
+
 ## [0.1.1] — 2026-05-05
 
 ### Changed
