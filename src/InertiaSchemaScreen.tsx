@@ -1,81 +1,57 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { usePage } from "@inertiajs/react";
+import { Screen, type ScreenSchema } from "@particle-academy/fancy-screens";
+import type { ReactNode } from "react";
 
 export interface InertiaSchemaScreenProps {
   /**
-   * Inertia page-prop key holding the schema. Default `"schema"`.
-   * Use this to swap to other prop names (`"layout"`, `"page"`, etc.)
-   * if you have multiple schema-driven pages with different shapes.
+   * Inertia page-prop key holding the schema. Default `"schema"`. Override
+   * if you have multiple schema-driven pages keyed under different names.
    */
   propKey?: string;
 
-  /** Optional fallback rendered while waiting for fancy-screens to load. */
+  /** Optional fallback rendered when the prop is missing or empty. */
   fallback?: ReactNode;
+
+  /**
+   * Screen id for the rendered surface. Default `"inertia-schema"`. Override
+   * when you have multiple schema-driven screens mounted at once.
+   */
+  screenId?: string;
+
+  /** Optional title for the rendered screen. */
+  title?: string;
 }
 
 /**
  * Sugar over `<Screen schema={...} />` that pulls the schema directly
- * from Inertia's `usePage().props[propKey]`. Lets a server-side
- * controller render an entire screen with one return:
+ * from Inertia's `usePage().props[propKey]`. The whole React page becomes
+ * one line when paired with a server-side controller (typically an
+ * agent-driven one) that emits the schema:
  *
  *   // PHP
  *   return Inertia::render('AgentScreen', [
- *       'schema' => $agent->screenFor($user),
+ *       'schema' => $agent->buildPageFor($user),
  *   ]);
  *
- *   // React page component — no schema parsing needed
+ *   // React
  *   import { InertiaSchemaScreen } from "@particle-academy/fancy-inertia";
- *   export default function AgentScreen() {
- *     return <InertiaSchemaScreen />;
- *   }
+ *   export default () => <InertiaSchemaScreen />;
  *
- * Pairs with `registerFancyComponents()` so the schema can reference
- * any component by name without per-page registration.
+ * Pairs with `registerFancyComponents()` — call that once at app boot so
+ * the schema can reference any component by name without per-page wiring.
  */
 export function InertiaSchemaScreen({
   propKey = "schema",
   fallback = null,
+  screenId = "inertia-schema",
+  title,
 }: InertiaSchemaScreenProps) {
-  const [Screen, setScreen] = useState<React.ComponentType<{ schema: unknown }> | null>(null);
-  const [usePageHook, setUsePage] = useState<(() => { props: Record<string, unknown> }) | null>(
-    null,
-  );
-
-  useEffect(() => {
-    Promise.all([
-      import("@particle-academy/fancy-screens").catch(() => null),
-      import("@inertiajs/react").catch(() => null),
-    ]).then(([screensMod, inertiaMod]) => {
-      if (!screensMod || !inertiaMod) {
-        console.warn(
-          "[fancy-inertia] InertiaSchemaScreen needs both @particle-academy/fancy-screens and @inertiajs/react",
-        );
-        return;
-      }
-      setScreen(() => screensMod.Screen as unknown as React.ComponentType<{ schema: unknown }>);
-      setUsePage(() => (inertiaMod as unknown as { usePage: () => { props: Record<string, unknown> } }).usePage);
-    });
-  }, []);
-
-  if (!Screen || !usePageHook) return <>{fallback}</>;
-
-  return <SchemaInner Screen={Screen} usePage={usePageHook} propKey={propKey} fallback={fallback} />;
-}
-
-function SchemaInner({
-  Screen,
-  usePage,
-  propKey,
-  fallback,
-}: {
-  Screen: React.ComponentType<{ schema: unknown }>;
-  usePage: () => { props: Record<string, unknown> };
-  propKey: string;
-  fallback: ReactNode;
-}) {
   const page = usePage();
-  const schema = page.props?.[propKey];
+  const schema = page.props?.[propKey] as ScreenSchema | undefined;
+
   if (!schema) return <>{fallback}</>;
-  return <Screen schema={schema} />;
+
+  return <Screen id={screenId} title={title} schema={schema} />;
 }
 
 InertiaSchemaScreen.displayName = "InertiaSchemaScreen";

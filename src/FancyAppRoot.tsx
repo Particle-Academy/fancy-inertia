@@ -1,5 +1,7 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Toast } from "@particle-academy/react-fancy";
+import { ScreenSystem } from "@particle-academy/fancy-screens";
+import { registerAll, registerBuiltinThemes } from "@particle-academy/fancy-echarts";
 
 export interface FancyAppRootProps {
   children: ReactNode;
@@ -9,7 +11,7 @@ export interface FancyAppRootProps {
 
   /**
    * Mount fancy-screens' `<Screen.System>` provider. Default `true`. Set
-   * `false` if your app doesn't use fancy-screens (saves a context layer).
+   * `false` if your app doesn't use fancy-screens (saves one context layer).
    */
   withScreens?: boolean;
 
@@ -48,55 +50,20 @@ export function FancyAppRoot({
   withScreens = true,
   withECharts = true,
 }: FancyAppRootProps) {
-  const [echartsReady, setEchartsReady] = useState(!withECharts);
-  const [ScreenSystem, setScreenSystem] = useState<React.ComponentType<{ children: ReactNode }> | null>(
-    null,
-  );
-
   useEffect(() => {
     if (withECharts) {
-      // Lazy-import so echarts isn't pulled in when not needed.
-      import("@particle-academy/fancy-echarts")
-        .then((m) => {
-          m.registerAll();
-          if ("registerBuiltinThemes" in m && typeof m.registerBuiltinThemes === "function") {
-            m.registerBuiltinThemes();
-          }
-          setEchartsReady(true);
-        })
-        .catch((err) => {
-          // fancy-echarts is an optional peer; missing dep is a no-op.
-          console.warn("[fancy-inertia] fancy-echarts not installed; skipping registerAll", err);
-          setEchartsReady(true);
-        });
+      registerAll();
+      registerBuiltinThemes();
     }
+  }, [withECharts]);
 
-    if (withScreens) {
-      import("@particle-academy/fancy-screens")
-        .then((m) => setScreenSystem(() => m.ScreenSystem))
-        .catch((err) => {
-          console.warn("[fancy-inertia] fancy-screens not installed; skipping <Screen.System>", err);
-          setScreenSystem(() => Passthrough);
-        });
-    }
-  }, [withECharts, withScreens]);
-
-  // While echarts is registering, render children without it — charts
-  // mount lazily anyway, so the warm-up window is invisible to most pages.
-  // While ScreenSystem is loading, use a passthrough so the tree mounts
-  // immediately; a Screen rendered in the first frame will register
-  // itself as soon as the system loads.
-  const SystemWrapper = withScreens ? ScreenSystem ?? Passthrough : Passthrough;
-
-  return (
-    <Toast.Provider position={toastPosition}>
-      <SystemWrapper>{children}</SystemWrapper>
-    </Toast.Provider>
+  const Inner = withScreens ? (
+    <ScreenSystem>{children}</ScreenSystem>
+  ) : (
+    <>{children}</>
   );
-}
 
-function Passthrough({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  return <Toast.Provider position={toastPosition}>{Inner}</Toast.Provider>;
 }
 
 FancyAppRoot.displayName = "FancyAppRoot";

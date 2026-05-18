@@ -1,49 +1,50 @@
 import type { ComponentType } from "react";
 
-export type ComponentRegistry = Record<string, ComponentType<unknown>>;
+export type ComponentRegistry = Record<string, ComponentType<Record<string, unknown>>>;
 
 export interface RegisterOptions {
-  /** Add chart components (EChart). Requires fancy-echarts installed. */
+  /** Add chart components (EChart, EChart3D, DataDiagram, …). Requires fancy-echarts. */
   withECharts?: boolean;
-  /** Add Screen primitives (Screen.Body, Screen.Port). Requires fancy-screens. */
-  withScreens?: boolean;
   /** Append your app's own components to the registry. */
   extra?: ComponentRegistry;
+  /**
+   * Actually wire the registry into fancy-screens' schema engine. Default
+   * `true`. Set `false` if you only want the returned map (e.g. for testing).
+   */
+  install?: boolean;
 }
 
 let cached: ComponentRegistry | null = null;
 
 /**
  * Pre-registers a curated component whitelist for fancy-screens'
- * schema-driven mode. Call once on app boot — typically inside
- * `createInertiaApp({ setup })` or your equivalent app-shell init.
+ * schema-driven mode AND wires it into the schema engine so
+ * `<Screen schema={...}>` can resolve components by name immediately.
  *
  *   import { registerFancyComponents } from "@particle-academy/fancy-inertia";
- *   import { Screen } from "@particle-academy/fancy-screens";
  *
- *   const registry = await registerFancyComponents({ withECharts: true });
- *   Screen.registerComponents?.(registry);
+ *   // On app boot (e.g. inside createInertiaApp({ setup })):
+ *   await registerFancyComponents({ withECharts: true });
  *
- * After registration, server-supplied schemas can reference any
- * component in the registry by name:
+ *   // Later: a Laravel controller returns a schema in Inertia props.
+ *   // <InertiaSchemaScreen /> renders it with no extra wiring.
  *
- *   { component: "Card", props: { ... }, children: [
- *     { component: "Chart", props: { from: "@dashboard.timeseries" } }
- *   ] }
- *
- * The default whitelist is intentionally minimal (Card, Action, Badge,
- * Heading, Text, Table, Input, Select, Modal, Callout) to keep the
- * agent surface predictable and bundles small. Pass `extra: {...}` to
+ * The default whitelist is intentionally minimal so the agent surface
+ * stays predictable and bundles stay small. Pass `extra: {...}` to
  * register your own app-specific components.
+ *
+ * Returns the registry so test code can introspect it; pass
+ * `install: false` to skip the side-effect on fancy-screens.
  */
 export async function registerFancyComponents(
   options: RegisterOptions = {},
 ): Promise<ComponentRegistry> {
-  if (cached && options.extra === undefined) return cached;
+  const { install = true, extra, withECharts } = options;
+
+  if (cached && extra === undefined) return cached;
 
   const registry: ComponentRegistry = {};
 
-  // react-fancy core (always included; the package is the raison d'être).
   try {
     const fancy = (await import("@particle-academy/react-fancy")) as Record<string, unknown>;
     addIfPresent(registry, fancy, [
@@ -67,11 +68,17 @@ export async function registerFancyComponents(
       "Tooltip",
       "Popover",
     ]);
+    // Card has dotted subcomponents — register them explicitly so schemas
+    // can address them by their human-readable names.
+    const Card = fancy.Card as { Header?: ComponentType; Body?: ComponentType; Footer?: ComponentType } | undefined;
+    if (Card?.Header) registry["Card.Header"] = Card.Header as ComponentType<Record<string, unknown>>;
+    if (Card?.Body) registry["Card.Body"] = Card.Body as ComponentType<Record<string, unknown>>;
+    if (Card?.Footer) registry["Card.Footer"] = Card.Footer as ComponentType<Record<string, unknown>>;
   } catch (err) {
     console.warn("[fancy-inertia] @particle-academy/react-fancy not installed", err);
   }
 
-  if (options.withECharts) {
+  if (withECharts) {
     try {
       const echarts = (await import("@particle-academy/fancy-echarts")) as Record<string, unknown>;
       addIfPresent(registry, echarts, ["EChart", "EChart3D", "DataDiagram", "Flowchart", "Mindmap", "OrgChart"]);
@@ -80,20 +87,25 @@ export async function registerFancyComponents(
     }
   }
 
-  if (options.withScreens) {
+  if (extra) {
+    Object.assign(registry, extra);
+  }
+
+  if (install) {
     try {
-      const screens = (await import("@particle-academy/fancy-screens")) as Record<string, unknown>;
-      addIfPresent(registry, screens, ["Screen"]);
+      const screens = (await import("@particle-academy/fancy-screens")) as {
+        registerSchemaComponents?: (entries: ComponentRegistry) => void;
+      };
+      screens.registerSchemaComponents?.(registry);
     } catch (err) {
-      console.warn("[fancy-inertia] @particle-academy/fancy-screens not installed", err);
+      console.warn(
+        "[fancy-inertia] @particle-academy/fancy-screens not installed; schema components not wired",
+        err,
+      );
     }
   }
 
-  if (options.extra) {
-    Object.assign(registry, options.extra);
-  }
-
-  cached = options.extra === undefined ? registry : cached;
+  cached = extra === undefined ? registry : cached;
   return registry;
 }
 
@@ -110,7 +122,7 @@ function addIfPresent(
   for (const name of names) {
     const value = source[name];
     if (typeof value === "function" || (typeof value === "object" && value !== null)) {
-      target[name] = value as ComponentType<unknown>;
+      target[name] = value as ComponentType<Record<string, unknown>>;
     }
   }
 }
