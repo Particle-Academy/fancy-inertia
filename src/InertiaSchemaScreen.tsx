@@ -1,6 +1,14 @@
 import { usePage } from "@inertiajs/react";
-import { Screen, type ScreenSchema } from "@particle-academy/fancy-screens";
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
+// Type-only import — erased at build, so it adds NO runtime edge to the
+// optional `fancy-screens` peer. The value (`Screen`) is loaded lazily below.
+import type { ScreenSchema } from "@particle-academy/fancy-screens";
+
+const ScreenLazy = lazy<ComponentType<{ id?: string; title?: string; schema: ScreenSchema }>>(() =>
+  import("@particle-academy/fancy-screens").then((m) => ({
+    default: m.Screen as ComponentType<{ id?: string; title?: string; schema: ScreenSchema }>,
+  })),
+);
 
 export interface InertiaSchemaScreenProps {
   /**
@@ -37,8 +45,10 @@ export interface InertiaSchemaScreenProps {
  *   import { InertiaSchemaScreen } from "@particle-academy/fancy-inertia";
  *   export default () => <InertiaSchemaScreen />;
  *
- * Pairs with `registerFancyComponents()` — call that once at app boot so
- * the schema can reference any component by name without per-page wiring.
+ * Requires the optional `@particle-academy/fancy-screens` peer (loaded
+ * lazily, so it never enters the base import graph). Pairs with
+ * `registerFancyComponents()` — call that once at app boot so the schema
+ * can reference any component by name without per-page wiring.
  */
 export function InertiaSchemaScreen({
   propKey = "schema",
@@ -51,7 +61,11 @@ export function InertiaSchemaScreen({
 
   if (!schema) return <>{fallback}</>;
 
-  return <Screen id={screenId} title={title} schema={schema} />;
+  return (
+    <Suspense fallback={fallback}>
+      <ScreenLazy id={screenId} title={title} schema={schema} />
+    </Suspense>
+  );
 }
 
 InertiaSchemaScreen.displayName = "InertiaSchemaScreen";

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.1] — 2026-05-28
+
+### Fixed
+- **Optional peers are optional again.** `<FancyAppRoot>` and `<InertiaSchemaScreen>` statically imported `@particle-academy/fancy-screens` and `@particle-academy/fancy-echarts` at module top level, so any bundler resolving `fancy-inertia` hard-failed (`"registerAll" is not exported by …`) when those optional peers weren't installed — even for consumers using only the base `<FancyAppRoot>` + `useFancyForm`. Both peers are now loaded lazily (`React.lazy` / dynamic `import()`) behind their `withScreens` / `withECharts` flags, so the base import graph references nothing but `react-fancy`. (#1)
+- `withScreens` / `withECharts` now degrade gracefully with a console warning if the peer is absent, instead of failing.
+
+This reverts the 0.2.0 "static providers" decision for the optional peers only. The `withScreens` / `withECharts` / `useFancyForm` / `registerFancyComponents` / `<InertiaSchemaScreen>` APIs are unchanged; the only observable difference is a one-tick async load of `<ScreenSystem>` on first mount when `withScreens` is on.
+
+## [0.2.0] — 2026-05-26
+
+### Changed (breaking)
+- Follows `fancy-screens` 0.4 (Ports → Zustand). Removed `usePersistFancyState()` — use Zustand's `persist` middleware per store instead. See [docs/Migration.md](docs/Migration.md).
+- `registerFancyComponents` now wires the registry into `fancy-screens`' schema engine under the hood (previously left to the consumer).
+- Bundle slimmed ~24% (7.2 KB → 5.5 KB ESM).
+- Peer bump: `@particle-academy/fancy-screens` ^0.4.0.
+
+### Added
+- Schema-driven hardening for `<InertiaSchemaScreen>` (the "agent emits a page" surface).
+
+> Backfilled retroactively — 0.2.0 shipped while the Tynn MCP was disconnected, so it never got a changelog entry at release time.
+
 ## [0.1.2] — 2026-05-07
 
 ### Fixed

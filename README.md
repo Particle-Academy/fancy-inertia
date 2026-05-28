@@ -99,7 +99,7 @@ export const useUserStore = create(
 | [USAGE.md](docs/USAGE.md) | Full reference for every export with examples |
 | [Recipes.md](docs/Recipes.md) | End-to-end patterns: forms, schema-driven pages |
 | [SSR.md](docs/SSR.md) | Inertia SSR compatibility matrix per fancy package |
-| [Migration.md](docs/Migration.md) | 0.1.x → 0.2.x: drop `usePersistFancyState`, static FancyAppRoot |
+| [Migration.md](docs/Migration.md) | 0.1.x → 0.2.x: drop `usePersistFancyState`; optional peers (`fancy-screens`/`fancy-echarts`) stay lazy as of 0.2.1 |
 
 ## License
 

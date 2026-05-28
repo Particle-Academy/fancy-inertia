@@ -1,14 +1,14 @@
-# Migrating to 0.2 — Static providers + Ports gone
+# Migrating to 0.2 — Ports gone (optional peers fixed in 0.2.1)
 
-`fancy-inertia` 0.2 follows `fancy-screens` 0.4: the custom Port system in fancy-screens has been replaced by Zustand, so the persistence hook this package shipped to bridge it is no longer needed. The `<FancyAppRoot>` provider gymnastics have also been simplified.
+`fancy-inertia` 0.2 follows `fancy-screens` 0.4: the custom Port system in fancy-screens has been replaced by Zustand, so the persistence hook this package shipped to bridge it is no longer needed. (0.2.0 also briefly switched `<FancyAppRoot>` to static optional-peer imports; **0.2.1 reverted that** — see §2.)
 
 ## What changed
 
 | Before (0.1.x) | After (0.2.x) |
 |---|---|
 | `usePersistFancyState()` hook | **Removed.** Use Zustand's `persist` middleware per store. |
-| `<FancyAppRoot>` lazy-imported `fancy-screens` and `fancy-echarts` at runtime | Static imports. Providers are sync on first render. |
-| `withScreens={false}` toggled a dynamic import; you got a `<Passthrough>` while it loaded | `withScreens={false}` just doesn't mount `<ScreenSystem>`. No transitional render. |
+| `<FancyAppRoot>` lazy-imported `fancy-screens` and `fancy-echarts` at runtime | Lazy again as of **0.2.1** — see the note below. (0.2.0 briefly used static imports.) |
+| `withScreens={false}` toggled a dynamic import; you got a `<Passthrough>` while it loaded | `withScreens={false}` never imports `fancy-screens` at all. `withScreens` (default) lazy-loads it behind a `<Suspense>`. |
 | Peer dep `@particle-academy/fancy-screens ^0.2` | Peer dep `@particle-academy/fancy-screens ^0.4` |
 
 The `useFancyForm`, `<FancyClientOnly>`, `registerFancyComponents`, and `<InertiaSchemaScreen>` APIs are unchanged.
@@ -43,14 +43,15 @@ export const useUserStore = create(
 
 The hook is **removed** in 0.2.x — its import will fail to resolve.
 
-### 2. Drop the lazy-provider dance
+### 2. Optional peers stay optional (corrected in 0.2.1)
 
-If you were relying on the fact that `<ScreenSystem>` mounted asynchronously inside `<FancyAppRoot>`, two things change:
+> **Note:** 0.2.0 made `fancy-screens` / `fancy-echarts` *static* imports, on the assumption tree-shaking would drop them when unused. It can't: a static import of an **uninstalled** optional peer hard-fails the consumer's Rollup/Vite build before tree-shaking runs (issue #1). **0.2.1 reverts to lazy loading** for the optional peers.
 
-- `<ScreenSystem>` now mounts synchronously on first render. Any `<Screen>` rendered in the first frame will succeed immediately.
-- The brief "providers loading" window where `useScreens()` returned nothing is gone.
+What this means for you:
 
-This is a behavior change but virtually always for the better. The one case where it matters: if you were building a bundle that imported `fancy-inertia` but didn't actually use `<ScreenSystem>`, the old code would tree-shake `fancy-screens` out. With static imports, you'll pull it in regardless. If that matters, install `fancy-inertia` without `fancy-screens` as a peer (it's optional) — the import will fail at type level but only your `<FancyAppRoot>` instantiation will trip it, and you'll know to drop the dep entirely.
+- The base `fancy-inertia` import graph references **only** `react-fancy`. You can install and build with nothing but `react-fancy` + `@inertiajs/react` and use `<FancyAppRoot>` + `useFancyForm` — no need to install `fancy-screens` or `fancy-echarts`.
+- `withScreens` (default `true`) lazy-loads `<ScreenSystem>` behind a `<Suspense fallback={null}>`, so there's a one-tick async window on first mount before any `<Screen>` resolves. If the peer is absent it degrades to a passthrough with a console warning — pass `withScreens={false}` to skip it entirely and silence the warning.
+- `withECharts` (default `true`) lazily registers echarts modules in an effect; absent peer → console warning, no crash.
 
 ### 3. Bump the `fancy-screens` peer
 

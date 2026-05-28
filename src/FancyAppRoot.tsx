@@ -1,7 +1,26 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { Toast } from "@particle-academy/react-fancy";
-import { ScreenSystem } from "@particle-academy/fancy-screens";
-import { registerAll, registerBuiltinThemes } from "@particle-academy/fancy-echarts";
+
+/**
+ * fancy-screens is an OPTIONAL peer. Importing `ScreenSystem` statically
+ * would put `@particle-academy/fancy-screens` in the base import graph, so
+ * any bundler resolving `fancy-inertia` would hard-fail when it isn't
+ * installed — even for consumers who only use `<FancyAppRoot withScreens={false}>`.
+ * Load it lazily instead, and degrade to a passthrough if it's absent.
+ */
+const Passthrough = ({ children }: { children?: ReactNode }) => <>{children}</>;
+
+const ScreenSystemLazy = lazy<ComponentType<{ children?: ReactNode }>>(() =>
+  import("@particle-academy/fancy-screens")
+    .then((m) => ({ default: m.ScreenSystem as ComponentType<{ children?: ReactNode }> }))
+    .catch((err) => {
+      console.warn(
+        "[fancy-inertia] `withScreens` is on but @particle-academy/fancy-screens is not installed — rendering children without the ScreenSystem provider. Pass `withScreens={false}` to silence this.",
+        err,
+      );
+      return { default: Passthrough };
+    }),
+);
 
 export interface FancyAppRootProps {
   children: ReactNode;
@@ -11,14 +30,15 @@ export interface FancyAppRootProps {
 
   /**
    * Mount fancy-screens' `<Screen.System>` provider. Default `true`. Set
-   * `false` if your app doesn't use fancy-screens (saves one context layer).
+   * `false` if your app doesn't use fancy-screens — the optional peer is
+   * never imported in that case.
    */
   withScreens?: boolean;
 
   /**
    * Auto-register echarts modules + built-in themes on mount. Default
    * `true`. Disable if you call `registerCharts(...)` yourself for
-   * tree-shaking control.
+   * tree-shaking control, or if fancy-echarts isn't installed.
    */
   withECharts?: boolean;
 }
@@ -43,6 +63,10 @@ export interface FancyAppRootProps {
  *       );
  *     },
  *   });
+ *
+ * `fancy-screens` and `fancy-echarts` are optional peers, loaded lazily
+ * only when `withScreens` / `withECharts` are enabled — the base bundle
+ * depends on nothing but `react-fancy`.
  */
 export function FancyAppRoot({
   children,
@@ -51,14 +75,30 @@ export function FancyAppRoot({
   withECharts = true,
 }: FancyAppRootProps) {
   useEffect(() => {
-    if (withECharts) {
-      registerAll();
-      registerBuiltinThemes();
-    }
+    if (!withECharts) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const echarts = await import("@particle-academy/fancy-echarts");
+        if (cancelled) return;
+        echarts.registerAll?.();
+        echarts.registerBuiltinThemes?.();
+      } catch (err) {
+        console.warn(
+          "[fancy-inertia] `withECharts` is on but @particle-academy/fancy-echarts is not installed — skipping chart registration. Pass `withECharts={false}` to silence this.",
+          err,
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [withECharts]);
 
   const Inner = withScreens ? (
-    <ScreenSystem>{children}</ScreenSystem>
+    <Suspense fallback={null}>
+      <ScreenSystemLazy>{children}</ScreenSystemLazy>
+    </Suspense>
   ) : (
     <>{children}</>
   );
