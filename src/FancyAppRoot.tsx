@@ -10,14 +10,25 @@ import { Toast } from "@particle-academy/react-fancy";
  */
 const Passthrough = ({ children }: { children?: ReactNode }) => <>{children}</>;
 
+const SCREENS_MISSING =
+  "[fancy-inertia] `withScreens` is on but @particle-academy/fancy-screens is not available — rendering children without the ScreenSystem provider. Pass `withScreens={false}` to silence this.";
+
 const ScreenSystemLazy = lazy<ComponentType<{ children?: ReactNode }>>(() =>
   import("@particle-academy/fancy-screens")
-    .then((m) => ({ default: m.ScreenSystem as ComponentType<{ children?: ReactNode }> }))
+    .then((m) => {
+      const Comp = (m as { ScreenSystem?: ComponentType<{ children?: ReactNode }> })?.ScreenSystem;
+      // A bundler resolving an ABSENT optional peer can hand back an
+      // export-less stub ({ default: undefined }) instead of rejecting — so a
+      // reject-only `.catch` misses it and React.lazy gets `{ default: undefined }`
+      // (React #306). Guard the resolved export, not just rejection.
+      if (!Comp) {
+        console.warn(SCREENS_MISSING);
+        return { default: Passthrough };
+      }
+      return { default: Comp };
+    })
     .catch((err) => {
-      console.warn(
-        "[fancy-inertia] `withScreens` is on but @particle-academy/fancy-screens is not installed — rendering children without the ScreenSystem provider. Pass `withScreens={false}` to silence this.",
-        err,
-      );
+      console.warn(SCREENS_MISSING, err);
       return { default: Passthrough };
     }),
 );

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] — 2026-05-29
+
+### Fixed
+- Widened the `@particle-academy/fancy-echarts` peer to `^3.0.0 || ^4.0.0` (was `^3.0.0`, which ERESOLVE-blocked the current echarts 4.x). `FancyAppRoot`'s `withECharts` loader only calls `registerAll()` / `registerBuiltinThemes()`, both unchanged in v4. (#2)
+- Hardened the optional-peer lazy imports (`<FancyAppRoot withScreens>` and `<InertiaSchemaScreen>`): a bundler resolving an *absent* optional peer can return an export-less stub (`{ default: undefined }`) rather than rejecting, which slipped past the reject-only `.catch` and handed `React.lazy` `{ default: undefined }` (React #306). Both now guard the resolved export and degrade gracefully.
+
 ## [0.2.1] — 2026-05-28
 
 ### Fixed

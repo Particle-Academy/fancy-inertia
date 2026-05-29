@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-inertia",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Inertia.js integration for the fancy UI set — app-shell providers, SSR helpers, useFancyForm() bridge, schema-driven page rendering.",
   "repository": {
     "type": "git",
@@ -50,15 +50,19 @@
     "@inertiajs/react": "^1.0.0 || ^2.0.0 || ^3.0.0",
     "@particle-academy/react-fancy": "^3.0.0",
     "@particle-academy/fancy-screens": "^0.4.0",
-    "@particle-academy/fancy-echarts": "^3.0.0"
+    "@particle-academy/fancy-echarts": "^3.0.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
-    "@particle-academy/fancy-echarts": { "optional": true },
-    "@particle-academy/fancy-screens": { "optional": true }
+    "@particle-academy/fancy-echarts": {
+      "optional": true
+    },
+    "@particle-academy/fancy-screens": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@inertiajs/react": "^2.0.0",
-    "@particle-academy/fancy-echarts": "^3.0.0",
+    "@particle-academy/fancy-echarts": "^4.0.0",
     "@particle-academy/fancy-screens": "^0.4.0",
     "@particle-academy/react-fancy": "^3.0.0",
     "@types/react": "^19.0.0",

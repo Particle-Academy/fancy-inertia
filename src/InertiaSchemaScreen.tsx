@@ -4,10 +4,26 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 // optional `fancy-screens` peer. The value (`Screen`) is loaded lazily below.
 import type { ScreenSchema } from "@particle-academy/fancy-screens";
 
-const ScreenLazy = lazy<ComponentType<{ id?: string; title?: string; schema: ScreenSchema }>>(() =>
-  import("@particle-academy/fancy-screens").then((m) => ({
-    default: m.Screen as ComponentType<{ id?: string; title?: string; schema: ScreenSchema }>,
-  })),
+type ScreenComp = ComponentType<{ id?: string; title?: string; schema: ScreenSchema }>;
+// Renders nothing if fancy-screens is absent — InertiaSchemaScreen needs it.
+const ScreenUnavailable: ScreenComp = () => null;
+
+const ScreenLazy = lazy<ScreenComp>(() =>
+  import("@particle-academy/fancy-screens")
+    .then((m) => {
+      // Guard a resolved-but-absent export (a bundler's stub for a missing
+      // optional peer is { default: undefined } → React #306), not just rejection.
+      const Comp = (m as { Screen?: ScreenComp })?.Screen;
+      if (!Comp) {
+        console.warn("[fancy-inertia] <InertiaSchemaScreen> needs @particle-academy/fancy-screens, which isn't available.");
+        return { default: ScreenUnavailable };
+      }
+      return { default: Comp };
+    })
+    .catch((err) => {
+      console.warn("[fancy-inertia] <InertiaSchemaScreen> needs @particle-academy/fancy-screens, which isn't available.", err);
+      return { default: ScreenUnavailable };
+    }),
 );
 
 export interface InertiaSchemaScreenProps {
