@@ -1,5 +1,7 @@
 # @particle-academy/fancy-inertia
 
+[![Fancified](art/fancified.svg)](https://particle.academy)
+
 **Inertia.js integration for the fancy UI set.** Bridges the friction between the fancy packages (`react-fancy`, `fancy-echarts`, `fancy-screens`, …) and an Inertia-powered Laravel app: app-shell providers, SSR-safe boundaries, a useForm bridge, and schema-driven page rendering.
 
 ## Why this exists
