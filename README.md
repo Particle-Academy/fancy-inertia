@@ -54,8 +54,62 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns a Laravel controller into the source of truth for an entire page layout |
+| `<FancyPageTransition>` | Zero-dependency enter/exit page crossfade keyed on the Inertia page — `fade` / `slide` / `scale` / `blur` / `none` |
+| `<FancyTransitionProvider>` + `useFancyTransition()` | Holds + persists the active transition (localStorage) so a live switcher can change how every navigation animates |
 
 See [docs/USAGE.md](docs/USAGE.md) for full examples and [docs/Recipes.md](docs/Recipes.md) for end-to-end patterns.
+
+## Page transitions
+
+Animate Inertia navigations with a controlled, CSS-driven crossfade — no
+framer-motion, no peer dependency. Mount `<FancyPageTransition>` **inside your
+persistent layout, around the page body** (not the whole tree) so the nav and
+footer stay put while only the page content animates:
+
+```tsx
+import { FancyPageTransition } from "@particle-academy/fancy-inertia";
+import { usePage } from "@inertiajs/react";
+
+function Layout({ children }) {
+  const { url } = usePage();
+  return (
+    <div>
+      <header>…</header>
+      <main>
+        <FancyPageTransition pageKey={url}>{children}</FancyPageTransition>
+      </main>
+    </div>
+  );
+}
+```
+
+It snapshots the outgoing page (preserved by key — no remount flash), animates
+it out while the incoming page animates in, and respects
+`prefers-reduced-motion`. Pass a fixed `transition="slide"` (or `fade` / `scale`
+/ `blur` / `none`), or let users pick one live:
+
+```tsx
+import {
+  FancyTransitionProvider, useFancyTransition,
+  FANCY_TRANSITIONS, FANCY_TRANSITION_LABELS,
+} from "@particle-academy/fancy-inertia";
+
+// Wrap <App/> once:
+<FancyTransitionProvider defaultTransition="fade"><App/></FancyTransitionProvider>
+
+// A switcher anywhere — choice persists to localStorage and re-scopes every nav:
+function TransitionPicker() {
+  const { transition, setTransition, transitions } = useFancyTransition();
+  return (
+    <select value={transition} onChange={(e) => setTransition(e.target.value)}>
+      {transitions.map((t) => <option key={t} value={t}>{FANCY_TRANSITION_LABELS[t]}</option>)}
+    </select>
+  );
+}
+```
+
+When a `<FancyTransitionProvider>` is present, `<FancyPageTransition>` reads the
+active choice from it automatically — omit the `transition` prop.
 
 ## The schema-driven Inertia pattern
 
