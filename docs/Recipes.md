@@ -174,7 +174,7 @@ Inertia's `useForm()` returns server-side validation errors after a failed POST.
 
 ```tsx
 import { useFancyForm } from "@particle-academy/fancy-inertia";
-import { Input, Textarea, Action } from "@particle-academy/react-fancy";
+import { Input, Textarea, Button } from "@particle-academy/react-fancy";
 
 export default function ContactForm() {
   const form = useFancyForm({
@@ -188,7 +188,7 @@ export default function ContactForm() {
       <Input {...form.field("email")} type="email" placeholder="Email" />
       <Input {...form.field("subject")} placeholder="Subject" />
       <Textarea {...form.field("body")} rows={6} />
-      <Action type="submit" loading={form.processing}>Send</Action>
+      <Button type="submit" loading={form.processing}>Send</Button>
     </form>
   );
 }

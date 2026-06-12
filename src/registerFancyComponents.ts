@@ -49,7 +49,7 @@ export async function registerFancyComponents(
     const fancy = (await import("@particle-academy/react-fancy")) as Record<string, unknown>;
     addIfPresent(registry, fancy, [
       "Card",
-      "Action",
+      "Button",
       "Badge",
       "Heading",
       "Text",
@@ -68,6 +68,9 @@ export async function registerFancyComponents(
       "Tooltip",
       "Popover",
     ]);
+    // `Action` is the legacy schema type name for the button — keep it working
+    // for older agent-emitted schemas; `Button` is the canonical name.
+    if (registry["Button"]) registry["Action"] = registry["Button"];
     // Card has dotted subcomponents — register them explicitly so schemas
     // can address them by their human-readable names.
     const Card = fancy.Card as { Header?: ComponentType; Body?: ComponentType; Footer?: ComponentType } | undefined;

@@ -82,7 +82,7 @@ export default function Dashboard() {
 
 | Component | Needs `<FancyClientOnly>`? |
 |-----------|---------------------------|
-| `react-fancy` (Card, Action, Input, Modal, ...) | No — SSR-safe |
+| `react-fancy` (Card, Button, Input, Modal, ...) | No — SSR-safe |
 | `fancy-echarts` charts (`<EChart>`, `<EChart3D>`) | **Yes** — initialization needs `window` |
 | `fancy-3d` (`<Stage>`, `<Monitor>`, `<Card3D>`) | **Yes** — Babylon needs `window` |
 | `fancy-screens` (`<Screen>`) | **Yes** when used inline in a page (uses IntersectionObserver). No when mounted via `<FancyAppRoot withScreens>` (provider is SSR-safe; the visibility hooks only fire post-mount). |
@@ -126,7 +126,7 @@ type FancyFieldBridge<T> = {
 
 ```tsx
 import { useFancyForm } from "@particle-academy/fancy-inertia";
-import { Input, Switch, Action } from "@particle-academy/react-fancy";
+import { Input, Switch, Button } from "@particle-academy/react-fancy";
 
 export default function ProfileForm() {
   const form = useFancyForm({
@@ -140,7 +140,7 @@ export default function ProfileForm() {
       <Input {...form.field("name")} placeholder="Name" />
       <Input {...form.field("email")} placeholder="Email" type="email" />
       <Switch {...form.field("notify")} />
-      <Action type="submit" loading={form.processing}>Save</Action>
+      <Button type="submit" loading={form.processing}>Save</Button>
     </form>
   );
 }
@@ -251,7 +251,7 @@ if (typeof Screen.registerComponents === "function") {
 
 ### Default whitelist
 
-`react-fancy`: `Card`, `Action`, `Badge`, `Heading`, `Text`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox`, `Modal`, `Callout`, `Tabs`, `Accordion`, `Avatar`, `Profile`, `Timeline`, `Tooltip`, `Popover`
+`react-fancy`: `Card`, `Button`, `Badge`, `Heading`, `Text`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox`, `Modal`, `Callout`, `Tabs`, `Accordion`, `Avatar`, `Profile`, `Timeline`, `Tooltip`, `Popover`
 
 With `withECharts: true`: + `EChart`, `EChart3D`, `DataDiagram`, `Flowchart`, `Mindmap`, `OrgChart`
 

@@ -13,7 +13,7 @@ Inertia 1.x ships server-side rendering via `@inertiajs/server`. Some fancy comp
 
 | Component | SSR-safe? | Notes |
 |-----------|-----------|-------|
-| Card, Action, Badge, Heading, Text, Avatar, Profile | ✅ | Pure presentational |
+| Card, Button, Badge, Heading, Text, Avatar, Profile | ✅ | Pure presentational |
 | Input, Select, Textarea, Switch, Checkbox, Slider, RadioGroup | ✅ | Form fields render fine on the server |
 | Modal, Popover, Tooltip, Dropdown, ContextMenu | ⚠️ | Render the **trigger** server-side; the **content** mounts client-side via portals (no manual wrapping needed — react-fancy guards internally) |
 | Toast.Provider | ✅ | Provider mounts server-side; toasts only fire client-side |
