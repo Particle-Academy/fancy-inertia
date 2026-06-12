@@ -74,7 +74,7 @@ type InertiaForm<T> = {
  *   const form = useFancyForm({ name: "", email: "" });
  *   <Input {...form.field("name")} placeholder="Name" />
  *   <Input {...form.field("email")} placeholder="Email" />
- *   <Action onClick={() => form.post("/users")}>Save</Action>
+ *   <Button onClick={() => form.post("/users")}>Save</Button>
  *
  * Call signature mirrors `useForm()` from @inertiajs/react. Pass either
  * the initial values, or the result of `useForm(...)` if you've already
