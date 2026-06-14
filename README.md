@@ -51,6 +51,9 @@ Every page below now has Toast / Screen.System / echarts registered.
 |--------|--------|
 | `<FancyAppRoot>` | App-shell providers in one wrapper — Toast, Screen.System, echarts module registration |
 | `<FancyClientOnly>` | Skip-SSR boundary for components that touch `window` (echarts, fancy-3d, IntersectionObserver) |
+| `setupFancyApp()` | Client mount that auto-picks `hydrateRoot` vs `createRoot` — flip Inertia SSR on/off with no code change ([SSR.md](docs/SSR.md)) |
+| `createFancyServer()` <sub>`/server`</sub> | The SSR entry (`ssr.tsx`) — renders pages in the same Fancy provider tree the client hydrates |
+| `<Seo>` + JSON-LD builders <sub>`/seo`</sub> | Terse per-page SEO over Inertia `<Head>` — title/description/canonical/OG/Twitter + `application/ld+json` in one component ([SEO.md](docs/SEO.md)) |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns a Laravel controller into the source of truth for an entire page layout |
@@ -154,7 +157,8 @@ export const useUserStore = create(
 |-------|-------------|
 | [USAGE.md](docs/USAGE.md) | Full reference for every export with examples |
 | [Recipes.md](docs/Recipes.md) | End-to-end patterns: forms, schema-driven pages |
-| [SSR.md](docs/SSR.md) | Inertia SSR compatibility matrix per fancy package |
+| [SSR.md](docs/SSR.md) | Turning SSR on (`createFancyServer` + `setupFancyApp`) + the per-package SSR-safety matrix |
+| [SEO.md](docs/SEO.md) | Per-page SEO — `<Seo>` + JSON-LD builders, pairing with the `fancy-seo` server baseline |
 | [Migration.md](docs/Migration.md) | 0.1.x → 0.2.x: drop `usePersistFancyState`; optional peers (`fancy-screens`/`fancy-echarts`) stay lazy as of 0.2.1 |
 
 ## License

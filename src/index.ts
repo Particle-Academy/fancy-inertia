@@ -26,6 +26,12 @@ export type { FancyAppRootProps } from "./FancyAppRoot";
 export { FancyClientOnly } from "./FancyClientOnly";
 export type { FancyClientOnlyProps } from "./FancyClientOnly";
 
+export { setupFancyApp } from "./setupFancyApp";
+export type { SetupFancyAppOptions } from "./setupFancyApp";
+
+export { buildFancyAppTree } from "./buildFancyAppTree";
+export type { FancyAppTreeOptions } from "./buildFancyAppTree";
+
 export { useFancyForm } from "./useFancyForm";
 export type { FancyFormBridge, FancyFieldBridge } from "./useFancyForm";
 

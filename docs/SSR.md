@@ -1,5 +1,68 @@
 # SSR
 
+Inertia ships server-side rendering via `@inertiajs/server`. Some fancy components are SSR-safe; others need a client-only boundary. This page documents which — and how to wire the SSR server + hydrating client with one helper each.
+
+## Turning SSR on (the server entry + hydrating client)
+
+fancy-inertia ships matching helpers so the SSR server and the client mount the
+**same** Fancy provider tree — no drift, no hand-written `renderToString` glue.
+
+**1. The SSR entry — `resources/js/ssr.tsx`:**
+
+```tsx
+import { createFancyServer } from "@particle-academy/fancy-inertia/server";
+import { FancyDataRoot } from "@particle-academy/fancy-query";
+
+createFancyServer({
+  resolve: (name) => {
+    const pages = import.meta.glob("./Pages/**/*.tsx", { eager: true });
+    return pages[`./Pages/${name}.tsx`];
+  },
+  // App-specific providers wrap the page outlet (inside FancyAppRoot):
+  providers: (outlet) => <FancyDataRoot echo={null}>{outlet}</FancyDataRoot>,
+});
+```
+
+**2. The client entry — switch the body to `setupFancyApp`:**
+
+```tsx
+import { createInertiaApp } from "@inertiajs/react";
+import { setupFancyApp } from "@particle-academy/fancy-inertia";
+import { FancyDataRoot } from "@particle-academy/fancy-query";
+
+createInertiaApp({
+  resolve,
+  setup: ({ App, props, el }) =>
+    setupFancyApp({
+      el, App, props,
+      providers: (outlet) => <FancyDataRoot echo={null}>{outlet}</FancyDataRoot>,
+    }),
+});
+```
+
+`setupFancyApp` **auto-detects** SSR: it calls `hydrateRoot` when the mount element
+already has server-rendered children, else `createRoot`. So flipping Inertia SSR
+on/off is a config change, not a code change. (Force it with `hydrate: true|false`.)
+
+Both helpers accept the same `appRoot` (forwarded to `<FancyAppRoot>`) and
+`transition` options; the page-layout + `<FancyPageTransition>` wiring is shared
+via `buildFancyAppTree`.
+
+**3. Laravel side:** build the SSR bundle (`vite build --ssr`) and run the renderer:
+
+```bash
+php artisan inertia:start-ssr   # dev: alongside your web server
+```
+
+On a server, run it as a long-lived process (e.g. supervisor) and set
+`INERTIA_SSR_ENABLED=true`. `config('inertia.ssr.url')` must match the
+`createFancyServer({ port })` (default `13714`).
+
+> The SSR bundle imports `@particle-academy/fancy-inertia/server`, which pulls in
+> `react-dom/server` — a **server-only** entry. Never import `/server` from client code.
+
+---
+
 Inertia 1.x ships server-side rendering via `@inertiajs/server`. Some fancy components are SSR-safe; others need a client-only boundary. This page documents which.
 
 ## Quick rule
