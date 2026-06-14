@@ -17,6 +17,7 @@ export default defineConfig({
     "react-dom/server",
     "@inertiajs/react",
     "@inertiajs/react/server",
+    "@particle-academy/fancy-app-update",
     "@particle-academy/react-fancy",
     "@particle-academy/fancy-echarts",
     "@particle-academy/fancy-screens",

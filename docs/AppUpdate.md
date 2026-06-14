@@ -5,6 +5,14 @@ JS/CSS bundle until they refresh — missing fixes and risking subtle mismatches
 against the new backend. `useAppUpdate` / `<AppUpdateAlert>` detect a new build
 and prompt a refresh.
 
+> These are the **Inertia-flavored** wrappers around
+> [`@particle-academy/fancy-app-update`](https://www.npmjs.com/package/@particle-academy/fancy-app-update)
+> (the framework-agnostic core, installed for you): same hook + component, but the
+> default detection uses Inertia's asset version and the default UI is a
+> react-fancy Callout. Every core option (`check`, `currentVersion` +
+> `latestVersion`, `pingUrl`) still works to override the Inertia default. A
+> plain-React app with no Inertia can use the core package directly.
+
 **Zero-config on Inertia.** `HandleInertiaRequests::version()` hashes your Vite
 manifest, so the asset version changes on every build, and Inertia returns **409**
 to a GET carrying a stale `X-Inertia-Version`. The hook polls with the loaded
