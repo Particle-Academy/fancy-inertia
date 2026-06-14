@@ -54,6 +54,7 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `setupFancyApp()` | Client mount that auto-picks `hydrateRoot` vs `createRoot` — flip Inertia SSR on/off with no code change ([SSR.md](docs/SSR.md)) |
 | `createFancyServer()` <sub>`/server`</sub> | The SSR entry (`ssr.tsx`) — renders pages in the same Fancy provider tree the client hydrates |
 | `<Seo>` + JSON-LD builders <sub>`/seo`</sub> | Terse per-page SEO over Inertia `<Head>` — title/description/canonical/OG/Twitter + `application/ld+json` in one component ([SEO.md](docs/SEO.md)) |
+| `useAppUpdate()` + `<AppUpdateAlert>` | Detect a redeploy (new build) while the page is open and prompt to refresh — zero-config via Inertia's asset version; customizable alert + refresh action ([AppUpdate.md](docs/AppUpdate.md)) |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns a Laravel controller into the source of truth for an entire page layout |
@@ -159,6 +160,7 @@ export const useUserStore = create(
 | [Recipes.md](docs/Recipes.md) | End-to-end patterns: forms, schema-driven pages |
 | [SSR.md](docs/SSR.md) | Turning SSR on (`createFancyServer` + `setupFancyApp`) + the per-package SSR-safety matrix |
 | [SEO.md](docs/SEO.md) | Per-page SEO — `<Seo>` + JSON-LD builders, pairing with the `fancy-seo` server baseline |
+| [AppUpdate.md](docs/AppUpdate.md) | "New version available — refresh" detection: `useAppUpdate` + `<AppUpdateAlert>` |
 | [Migration.md](docs/Migration.md) | 0.1.x → 0.2.x: drop `usePersistFancyState`; optional peers (`fancy-screens`/`fancy-echarts`) stay lazy as of 0.2.1 |
 
 ## License

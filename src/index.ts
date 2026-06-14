@@ -32,6 +32,12 @@ export type { SetupFancyAppOptions } from "./setupFancyApp";
 export { buildFancyAppTree } from "./buildFancyAppTree";
 export type { FancyAppTreeOptions } from "./buildFancyAppTree";
 
+export { useAppUpdate } from "./useAppUpdate";
+export type { UseAppUpdateOptions, AppUpdate } from "./useAppUpdate";
+
+export { AppUpdateAlert } from "./AppUpdateAlert";
+export type { AppUpdateAlertProps, AppUpdateAlertPosition } from "./AppUpdateAlert";
+
 export { useFancyForm } from "./useFancyForm";
 export type { FancyFormBridge, FancyFieldBridge } from "./useFancyForm";
 
