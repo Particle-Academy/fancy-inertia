@@ -1,5 +1,6 @@
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
+import { useSeoDefaults } from "./context";
 
 export interface SeoProps {
   /** `<title>`. Also used for `og:title` / `twitter:title`. */
@@ -26,12 +27,32 @@ export interface SeoProps {
   twitterSite?: string;
   /** schema.org JSON-LD node(s) — emitted as `<script type="application/ld+json">`. */
   jsonLd?: object | object[];
+  /** Locale-alternate `<link rel="alternate" hreflang>` entries (incl. `x-default`). */
+  alternates?: Array<{ hreflang: string; href: string }>;
   /** Extra raw head children (escape hatch). */
   children?: ReactNode;
 }
 
 const INDEXABLE = "index, follow, max-image-preview:large";
 const NOINDEX = "noindex, nofollow";
+
+/** Apply a `"%s | Brand"` template to a page title (no-op without `%s`). */
+function applyTemplate(template: string | undefined, title: string): string {
+  return template && template.includes("%s") ? template.replace("%s", title) : title;
+}
+
+/** Absolute root + path → clean canonical (strip query, drop trailing slash). */
+function buildCanonical(siteUrl: string, url: string): string {
+  const base = siteUrl.replace(/\/+$/, "");
+  const path = (url.split(/[?#]/)[0] ?? "").replace(/\/+$/, "");
+  return path === "" ? `${base}/` : `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
+/** Make a root-relative image absolute against the configured site root. */
+function absoluteImage(image: string | undefined, siteUrl: string | undefined): string | undefined {
+  if (!image || /^https?:\/\//.test(image) || !siteUrl) return image;
+  return `${siteUrl.replace(/\/+$/, "")}/${image.replace(/^\/+/, "")}`;
+}
 
 /**
  * One terse, JSON-friendly head helper for per-page SEO. Renders into Inertia's
@@ -68,39 +89,81 @@ export function Seo({
   twitterCard = "summary_large_image",
   twitterSite,
   jsonLd,
+  alternates,
   children,
 }: SeoProps) {
+  const defaults = useSeoDefaults();
+  const pageUrl = (usePage() as { url?: string }).url ?? "";
+
+  // Fold per-page props over site defaults. A page passing nothing still gets a
+  // complete, correct head from the provider.
+  const resolvedTitle = title
+    ? applyTemplate(defaults.titleTemplate, title)
+    : defaults.defaultTitle;
+  const resolvedDescription = description ?? defaults.defaultDescription;
+  const resolvedSiteName = siteName ?? defaults.siteName;
+  const resolvedLocale = locale ?? defaults.locale;
+  const resolvedTwitterSite = twitterSite ?? defaults.twitterSite;
+  const resolvedImage = absoluteImage(image ?? defaults.defaultImage, defaults.siteUrl);
+  const resolvedCanonical =
+    canonical ?? (defaults.siteUrl ? buildCanonical(defaults.siteUrl, pageUrl) : undefined);
+
   const kw = Array.isArray(keywords) ? keywords.join(", ") : keywords;
   const nodes = jsonLd == null ? [] : Array.isArray(jsonLd) ? jsonLd : [jsonLd];
 
   return (
-    <Head title={title}>
-      {description ? (
-        <meta head-key="description" name="description" content={description} />
+    <Head title={resolvedTitle}>
+      {resolvedDescription ? (
+        <meta head-key="description" name="description" content={resolvedDescription} />
       ) : null}
       {kw ? <meta head-key="keywords" name="keywords" content={kw} /> : null}
-      {canonical ? <link head-key="canonical" rel="canonical" href={canonical} /> : null}
+      {resolvedCanonical ? (
+        <link head-key="canonical" rel="canonical" href={resolvedCanonical} />
+      ) : null}
       <meta head-key="robots" name="robots" content={noindex ? NOINDEX : INDEXABLE} />
 
       {/* Open Graph */}
       <meta head-key="og:type" property="og:type" content={type} />
-      {siteName ? <meta head-key="og:site_name" property="og:site_name" content={siteName} /> : null}
-      {title ? <meta head-key="og:title" property="og:title" content={title} /> : null}
-      {description ? (
-        <meta head-key="og:description" property="og:description" content={description} />
+      {resolvedSiteName ? (
+        <meta head-key="og:site_name" property="og:site_name" content={resolvedSiteName} />
       ) : null}
-      {canonical ? <meta head-key="og:url" property="og:url" content={canonical} /> : null}
-      {image ? <meta head-key="og:image" property="og:image" content={image} /> : null}
-      {locale ? <meta head-key="og:locale" property="og:locale" content={locale} /> : null}
+      {resolvedTitle ? <meta head-key="og:title" property="og:title" content={resolvedTitle} /> : null}
+      {resolvedDescription ? (
+        <meta head-key="og:description" property="og:description" content={resolvedDescription} />
+      ) : null}
+      {resolvedCanonical ? (
+        <meta head-key="og:url" property="og:url" content={resolvedCanonical} />
+      ) : null}
+      {resolvedImage ? <meta head-key="og:image" property="og:image" content={resolvedImage} /> : null}
+      {resolvedLocale ? (
+        <meta head-key="og:locale" property="og:locale" content={resolvedLocale} />
+      ) : null}
 
       {/* Twitter */}
       <meta head-key="twitter:card" name="twitter:card" content={twitterCard} />
-      {twitterSite ? <meta head-key="twitter:site" name="twitter:site" content={twitterSite} /> : null}
-      {title ? <meta head-key="twitter:title" name="twitter:title" content={title} /> : null}
-      {description ? (
-        <meta head-key="twitter:description" name="twitter:description" content={description} />
+      {resolvedTwitterSite ? (
+        <meta head-key="twitter:site" name="twitter:site" content={resolvedTwitterSite} />
       ) : null}
-      {image ? <meta head-key="twitter:image" name="twitter:image" content={image} /> : null}
+      {resolvedTitle ? (
+        <meta head-key="twitter:title" name="twitter:title" content={resolvedTitle} />
+      ) : null}
+      {resolvedDescription ? (
+        <meta head-key="twitter:description" name="twitter:description" content={resolvedDescription} />
+      ) : null}
+      {resolvedImage ? (
+        <meta head-key="twitter:image" name="twitter:image" content={resolvedImage} />
+      ) : null}
+
+      {/* Locale alternates (hreflang) */}
+      {alternates?.map((alt) => (
+        <link
+          key={alt.hreflang}
+          head-key={`alternate:${alt.hreflang}`}
+          rel="alternate"
+          hrefLang={alt.hreflang}
+          href={alt.href}
+        />
+      ))}
 
       {/* Structured data — escape `<` so a stray `</script>` in data can't break out. */}
       {nodes.map((node, i) => (

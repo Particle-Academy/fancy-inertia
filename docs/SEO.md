@@ -45,6 +45,42 @@ Open Graph + Twitter card set, and one `<script type="application/ld+json">` per
 JSON-LD node. Each tag carries a stable `head-key` so it cleanly overrides the
 server-rendered default rather than duplicating it.
 
+## Site defaults — `<SeoProvider>` + `defineSeo`
+
+Set the brand, title template, default image, locale, and site root **once** near
+the app root so every `<Seo>` stays terse and inherits them. With a `siteUrl` set,
+`<Seo>` also **auto-derives the canonical** from the current Inertia URL (query
+stripped, trailing slash dropped) and **absolutises root-relative images** — so
+most pages pass nothing but a `title`.
+
+```tsx
+import { SeoProvider, defineSeo } from "@particle-academy/fancy-inertia/seo";
+
+const seo = defineSeo({
+  siteUrl: "https://ui.particle.academy",   // enables auto-canonical + absolute OG image
+  siteName: "Fancy UI",
+  titleTemplate: "%s | Fancy UI",            // applied to a page's title
+  defaultTitle: "Fancy UI for React, Inertia, and Laravel",  // used verbatim when a page sets none
+  defaultDescription: "React, Inertia, and Laravel UI components for Human+ UX.",
+  defaultImage: "/og/home.png",
+  locale: "en_US",
+  twitterSite: "@particleacademy",
+});
+
+// near the root (inside FancyAppRoot is fine):
+<SeoProvider value={seo}>{children}</SeoProvider>
+```
+
+```tsx
+// A package page now needs almost nothing — title is templated, canonical +
+// og:image + site_name + locale all come from the provider:
+<Seo title={pkg.name} description={pkg.tagline} jsonLd={[/* … */]} />
+// → <title>react-fancy | Fancy UI</title>, canonical https://ui.particle.academy/packages/react-fancy, …
+```
+
+Match `siteUrl` to your `fancy-seo` `url` config so the client canonical agrees
+with the server baseline. Per-page props always win over provider defaults.
+
 ### Props
 
 | Prop | Type | Notes |
@@ -60,6 +96,7 @@ server-rendered default rather than duplicating it.
 | `twitterCard` | `"summary" \| "summary_large_image" \| …` | default `summary_large_image` |
 | `twitterSite` | `string` | `twitter:site` handle |
 | `jsonLd` | `object \| object[]` | schema.org node(s) — use the builders below |
+| `alternates` | `Array<{ hreflang, href }>` | locale `<link rel="alternate" hreflang>` (incl. `x-default`) |
 | `children` | `ReactNode` | escape hatch — extra raw `<head>` tags |
 
 `noindex` is the one to remember: tag admin/auth/checkout pages with `<Seo noindex />`
@@ -72,7 +109,7 @@ Pure functions returning plain schema.org objects (hand-typed, zero runtime deps
 ```tsx
 import {
   website, organization, softwareApplication, softwareSourceCode,
-  article, breadcrumbList, faqPage, collectionPage, product,
+  article, breadcrumbList, faqPage, howTo, collectionPage, product,
 } from "@particle-academy/fancy-inertia/seo";
 
 website({ name: "Fancy UI", url: "https://ui.particle.academy/", searchUrlTemplate: "https://ui.particle.academy/search?q={search_term_string}" });
@@ -81,9 +118,14 @@ softwareSourceCode({ name: "react-fancy", url: "…", codeRepository: "https://g
 breadcrumbList([{ name: "Packages", url: "/packages" }, { name: "react-fancy", url: "/packages/react-fancy" }]);
 article({ headline: "…", url: "…", datePublished: "2026-01-01", authorName: "…" });
 faqPage([{ question: "…?", answer: "…" }]);
+howTo({ name: "Install Fancy CLI", steps: [{ name: "Init", text: "npx fancy-ui init" }, { name: "Add", text: "npx fancy-ui add card" }] });
 collectionPage({ name: "Packages", url: "/packages" });
 product({ name: "Pro", price: "29", priceCurrency: "USD", url: "/pricing" });
 ```
+
+`faqPage` / `howTo` no longer render as Google rich results — emit them only on
+pages whose **visible** content genuinely is a Q&A / ordered how-to (the markup
+still aids machine understanding + AI answers).
 
 Each adds `"@context": "https://schema.org"` and only includes the fields you pass.
 Pass the result(s) to `<Seo jsonLd={…}>` — or render them yourself.

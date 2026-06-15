@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0] — 2026-06-14
+
+### Added (`/seo`)
+- **`<SeoProvider>` + `defineSeo()`** — site-wide SEO defaults (siteUrl, siteName, titleTemplate, defaultTitle/Description/Image, locale, twitterSite). Per-page `<Seo>` inherits them, so most pages now pass nothing but a `title`.
+- **Title templates** — a page `title` is folded into the provider's `titleTemplate` (`"%s | Fancy UI"`); `defaultTitle` is used verbatim when a page sets none.
+- **Auto-canonical** — with a provider `siteUrl`, `<Seo>` derives the canonical from the current Inertia URL (query stripped, trailing slash dropped) and absolutises root-relative images. Pass `canonical`/`image` to override.
+- **`howTo()` JSON-LD builder** — parity with `particle-academy/fancy-seo`.
+- **`alternates` prop** — locale `<link rel="alternate" hreflang>` entries (incl. `x-default`).
+
+Backwards-compatible: without a `<SeoProvider>`, `<Seo>` behaves exactly as before.
+
 ## [0.2.2] — 2026-05-29
 
 ### Fixed

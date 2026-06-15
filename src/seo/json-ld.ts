@@ -137,6 +137,27 @@ export function faqPage(items: Array<{ question: string; answer: string }>): Jso
   };
 }
 
+/**
+ * `HowTo` — an ordered, instructional task. Emit only on pages whose visible
+ * content genuinely is a step-by-step how-to (it no longer renders as a Google
+ * rich result, but the markup still aids machine understanding + AI answers).
+ */
+export function howTo(input: {
+  name: string;
+  steps: Array<{ name: string; text: string; url?: string; image?: string }>;
+  description?: string;
+}): JsonLd {
+  const node: JsonLd = { "@context": CONTEXT, "@type": "HowTo", name: input.name };
+  if (input.description) node.description = input.description;
+  node.step = input.steps.map((s, i) => {
+    const step: Record<string, unknown> = { "@type": "HowToStep", position: i + 1, name: s.name, text: s.text };
+    if (s.url) step.url = s.url;
+    if (s.image) step.image = s.image;
+    return step;
+  });
+  return node;
+}
+
 /** `CollectionPage` — an index/listing page. */
 export function collectionPage(input: { name: string; url: string; description?: string }): JsonLd {
   const node: JsonLd = { "@context": CONTEXT, "@type": "CollectionPage", name: input.name, url: input.url };

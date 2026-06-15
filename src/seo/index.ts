@@ -8,6 +8,9 @@
 export { Seo } from "./Seo";
 export type { SeoProps } from "./Seo";
 
+export { defineSeo, SeoProvider, useSeoDefaults } from "./context";
+export type { SeoDefaults } from "./context";
+
 export {
   website,
   organization,
@@ -16,6 +19,7 @@ export {
   article,
   breadcrumbList,
   faqPage,
+  howTo,
   collectionPage,
   product,
 } from "./json-ld";
