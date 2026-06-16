@@ -1,5 +1,5 @@
 import { Head, usePage } from "@inertiajs/react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSeoDefaults } from "./context";
 
 export interface SeoProps {
@@ -29,6 +29,13 @@ export interface SeoProps {
   jsonLd?: object | object[];
   /** Locale-alternate `<link rel="alternate" hreflang>` entries (incl. `x-default`). */
   alternates?: Array<{ hreflang: string; href: string }>;
+  /**
+   * Render client-only (emit nothing during SSR; take over after hydration).
+   * Overrides the provider's `clientOnly` default. Use when a server baseline
+   * (e.g. fancy-seo's Blade `<x-fancy-seo::head>`) already renders the head, so
+   * `<Seo>` doesn't duplicate it under SSR. See `SeoDefaults.clientOnly`.
+   */
+  clientOnly?: boolean;
   /** Extra raw head children (escape hatch). */
   children?: ReactNode;
 }
@@ -90,10 +97,21 @@ export function Seo({
   twitterSite,
   jsonLd,
   alternates,
+  clientOnly,
   children,
 }: SeoProps) {
   const defaults = useSeoDefaults();
   const pageUrl = (usePage() as { url?: string }).url ?? "";
+
+  // Client-only mode: emit nothing on the server / first client render, then
+  // take over the head after hydration (head-key override) + on SPA nav. Lets a
+  // server-rendered baseline (fancy-seo's Blade head) own the SSR head without
+  // <Seo> duplicating every tag. Server and first client render BOTH return null,
+  // so there's no hydration mismatch.
+  const isClientOnly = clientOnly ?? defaults.clientOnly ?? false;
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  if (isClientOnly && !hydrated) return null;
 
   // Fold per-page props over site defaults. A page passing nothing still gets a
   // complete, correct head from the provider.

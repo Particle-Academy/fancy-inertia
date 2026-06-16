@@ -30,6 +30,21 @@ export interface SeoDefaults {
   locale?: string;
   /** Twitter `@handle` for `twitter:site`. */
   twitterSite?: string;
+  /**
+   * Render `<Seo>` **client-only** — it emits nothing during SSR and takes over
+   * the head after hydration (via `head-key` override) + on SPA navigation.
+   *
+   * Set this `true` when a server-side baseline already renders the head — most
+   * importantly the `particle-academy/fancy-seo` Blade `<x-fancy-seo::head>`. With
+   * SSR enabled, BOTH that baseline AND `<Seo>` (via `@inertiaHead`) would emit
+   * the head server-side, duplicating every tag (two `<title>`s, two canonicals…)
+   * because Inertia can't dedup across the Blade boundary in the first byte.
+   * Client-only `<Seo>` lets the baseline own the SSR head and avoids the dup.
+   *
+   * Leave `false` (default) for a pure-Inertia app with no server baseline, where
+   * `<Seo>` must render during SSR to put the head in the first byte.
+   */
+  clientOnly?: boolean;
 }
 
 const SeoContext = createContext<SeoDefaults>({});
