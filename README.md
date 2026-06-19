@@ -60,8 +60,26 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns a Laravel controller into the source of truth for an entire page layout |
 | `<FancyPageTransition>` | Zero-dependency enter/exit page crossfade keyed on the Inertia page — `fade` / `slide` / `scale` / `blur` / `none` |
 | `<FancyTransitionProvider>` + `useFancyTransition()` | Holds + persists the active transition (localStorage) so a live switcher can change how every navigation animates |
+| `usePwaUpdate()` / `useOfflineGuard()` / `<FancyInertiaPwa>` <sub>`/pwa`</sub> | The Inertia ⇄ PWA adapter — the *synergistic* parts of making an Inertia app a PWA (see below) |
 
 See [docs/USAGE.md](docs/USAGE.md) for full examples and [docs/Recipes.md](docs/Recipes.md) for end-to-end patterns.
+
+## PWA adapter (`/pwa`)
+
+The bits where a PWA mixes *with* Inertia's grain — kept out of the core (and out of `@particle-academy/fancy-pwa`'s framework-agnostic core) because they bridge the two. `@particle-academy/fancy-pwa` is an **optional** peer; only the service-worker half uses it.
+
+```tsx
+import { FancyInertiaPwa } from "@particle-academy/fancy-inertia/pwa";
+
+// One mount near your root — defaults are sensible.
+<FancyInertiaPwa />
+```
+
+- **`usePwaUpdate()`** — one "new version available" signal from BOTH an Inertia redeploy (asset-version 409, zero-config) AND a waiting service worker. `refresh()` activates the waiting SW (skip-waiting → reload with the fresh shell), else a plain reload — so Inertia's version reload and the SW update never fight.
+- **`useOfflineGuard()`** — offline-aware navigation via `router.on('before')`: defers a GET visit attempted while offline (which would fire a doomed XHR and fail silently) and auto-replays it on reconnect. **No service worker, no caching** — connectivity *awareness*, not offline *operation*, so there's no staleness or navigation-hijacking. Pure Inertia.
+- **`<FancyInertiaPwa>`** — wires both + renders default chrome (update prompt + "you're offline" notice); every piece is opt-out via props.
+
+Deliberately **not** here: caching page responses / a service worker that intercepts navigations — that fights Inertia's server-driven model (stale CSRF, stale content). Reach for that only as a separate, carefully-scoped module on read-only routes.
 
 ## Page transitions
 

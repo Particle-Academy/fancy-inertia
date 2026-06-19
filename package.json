@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-inertia",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Inertia.js integration for the fancy UI set — app-shell providers, SSR helpers, useFancyForm() bridge, schema-driven page rendering.",
   "repository": {
     "type": "git",
@@ -43,7 +43,17 @@
         "default": "./dist/server/index.cjs"
       }
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./pwa": {
+      "import": {
+        "types": "./dist/pwa/index.d.ts",
+        "default": "./dist/pwa/index.js"
+      },
+      "require": {
+        "types": "./dist/pwa/index.d.cts",
+        "default": "./dist/pwa/index.cjs"
+      }
+    }
   },
   "files": [
     "dist",
@@ -73,6 +83,7 @@
   "peerDependencies": {
     "@inertiajs/react": "^1.0.0 || ^2.0.0 || ^3.0.0",
     "@particle-academy/fancy-echarts": "^3.0.0 || ^4.0.0",
+    "@particle-academy/fancy-pwa": ">=0.1",
     "@particle-academy/fancy-screens": "^0.4.0",
     "@particle-academy/react-fancy": ">=3",
     "react": "^18.0.0 || ^19.0.0",
@@ -88,11 +99,15 @@
     },
     "@particle-academy/fancy-screens": {
       "optional": true
+    },
+    "@particle-academy/fancy-pwa": {
+      "optional": true
     }
   },
   "devDependencies": {
     "@inertiajs/react": "^2.0.0",
     "@particle-academy/fancy-echarts": "^4.0.0",
+    "@particle-academy/fancy-pwa": "^0.1.5",
     "@particle-academy/fancy-screens": "^0.4.0",
     "@particle-academy/react-fancy": "^4.0.0",
     "@testing-library/react": "^16.0.0",
