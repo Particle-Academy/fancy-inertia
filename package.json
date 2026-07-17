@@ -110,6 +110,7 @@
     "@particle-academy/fancy-pwa": "^0.1.5",
     "@particle-academy/fancy-screens": "^0.4.0",
     "@particle-academy/react-fancy": "^4.0.0",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
