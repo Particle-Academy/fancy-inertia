@@ -2,7 +2,9 @@
 
 [![Fancified](art/fancified.svg)](https://particle.academy)
 
-**Inertia.js integration for the fancy UI set.** Bridges the friction between the fancy packages (`react-fancy`, `fancy-echarts`, `fancy-screens`, …) and an Inertia-powered Laravel app: app-shell providers, SSR-safe boundaries, a useForm bridge, and schema-driven page rendering.
+**Inertia.js integration for the fancy UI set.** Bridges the friction between the fancy packages (`react-fancy`, `fancy-echarts`, `fancy-screens`, …) and any Inertia-powered app: app-shell providers, SSR-safe boundaries, a useForm bridge, and schema-driven page rendering.
+
+> **Not Laravel-only.** This package has zero Laravel/PHP runtime dependencies — Inertia is just a router that mounts React components, so it works with any Inertia server adapter (Laravel, Rails, Adonis, …). The Laravel-flavoured pieces — deduping the head against `fancy-seo`'s Blade helper, and running SSR via `php artisan inertia:start-ssr` — are optional integrations, not requirements.
 
 ## Why this exists
 
@@ -57,7 +59,7 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `useAppUpdate()` + `<AppUpdateAlert>` | Detect a redeploy (new build) while the page is open and prompt to refresh — zero-config via Inertia's asset version; customizable alert + refresh action ([AppUpdate.md](docs/AppUpdate.md)) |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
-| `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns a Laravel controller into the source of truth for an entire page layout |
+| `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns your server controller into the source of truth for an entire page layout |
 | `<FancyPageTransition>` | Zero-dependency enter/exit page crossfade keyed on the Inertia page — `fade` / `slide` / `scale` / `blur` / `none` |
 | `<FancyTransitionProvider>` + `useFancyTransition()` | Holds + persists the active transition (localStorage) so a live switcher can change how every navigation animates |
 | `usePwaUpdate()` / `useOfflineGuard()` / `<FancyInertiaPwa>` <sub>`/pwa`</sub> | The Inertia ⇄ PWA adapter — the *synergistic* parts of making an Inertia app a PWA (see below) |
