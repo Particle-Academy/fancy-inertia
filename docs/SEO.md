@@ -118,7 +118,7 @@ softwareSourceCode({ name: "react-fancy", url: "…", codeRepository: "https://g
 breadcrumbList([{ name: "Packages", url: "/packages" }, { name: "react-fancy", url: "/packages/react-fancy" }]);
 article({ headline: "…", url: "…", datePublished: "2026-01-01", authorName: "…" });
 faqPage([{ question: "…?", answer: "…" }]);
-howTo({ name: "Install Fancy CLI", steps: [{ name: "Init", text: "npx fancy-ui init" }, { name: "Add", text: "npx fancy-ui add card" }] });
+howTo({ name: "Install Fancy CLI", steps: [{ name: "Init", text: "npx fancy-cli init" }, { name: "Add", text: "npx fancy-cli add card" }] });
 collectionPage({ name: "Packages", url: "/packages" });
 product({ name: "Pro", price: "29", priceCurrency: "USD", url: "/pricing" });
 ```
