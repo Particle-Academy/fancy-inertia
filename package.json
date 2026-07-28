@@ -78,7 +78,7 @@
     "particle-academy"
   ],
   "dependencies": {
-    "@particle-academy/fancy-app-update": "^0.1.0"
+    "@particle-academy/fancy-app-update": ">=0.1 <2.0"
   },
   "peerDependencies": {
     "@inertiajs/react": "^1.0.0 || ^2.0.0 || ^3.0.0",
