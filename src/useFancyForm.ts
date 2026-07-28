@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useForm as inertiaUseForm } from "@inertiajs/react";
 
 /**
@@ -86,16 +86,30 @@ type InertiaForm<T> = {
 export function useFancyForm<TData extends Record<string, unknown>>(
   initialOrForm: TData | InertiaForm<TData>,
 ): FancyFormBridge<TData> {
-  // Lazy-resolve @inertiajs/react. If the consumer has already called
-  // useForm() and passed the result in, we re-use it directly. Otherwise
-  // we instantiate via the package.
-  const form = useMemo<InertiaForm<TData>>(() => {
-    if (isInertiaForm<TData>(initialOrForm)) {
-      return initialOrForm;
-    }
-    return useInertiaFormShim(initialOrForm) as InertiaForm<TData>;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialOrForm]);
+  // If the consumer already called useForm() and passed the result in, re-use
+  // it; otherwise instantiate one here.
+  //
+  // The shim is called UNCONDITIONALLY and at the top level. It used to live
+  // inside a useMemo keyed on `initialOrForm`, which meant Inertia's useForm ran
+  // only when that memo recomputed. Pass a stable reference — a module-level
+  // constant, or anything memoised — and the memo is cached from the second
+  // render on, the inner hooks are skipped, React's hook order desyncs, and the
+  // next render dies with "Cannot read properties of undefined (reading
+  // 'length')" from deep inside React.
+  //
+  // It hid well: every call site that passes an inline object literal gets a new
+  // reference each render, so the memo always recomputed and the hooks always
+  // ran. Only callers doing the tidier thing were affected.
+  const provided = isInertiaForm<TData>(initialOrForm) ? initialOrForm : null;
+
+  // EMPTY_INITIAL is module-level and therefore stable, so this costs one idle
+  // Inertia form when a caller supplied their own. Rules of Hooks over
+  // micro-optimisation: the alternative is a conditional hook.
+  const shim = useInertiaFormShim<TData>(
+    (provided ? EMPTY_INITIAL : initialOrForm) as TData,
+  );
+
+  const form: InertiaForm<TData> = provided ?? shim;
 
   const field = useCallback(
     <K extends keyof TData & string>(name: K): FancyFieldBridge<TData[K]> => ({
@@ -148,6 +162,12 @@ function isInertiaForm<T>(x: unknown): x is InertiaForm<T> {
     "processing" in (x as object)
   );
 }
+
+/**
+ * Stable placeholder for the case where the caller supplied their own form.
+ * Module-level so the reference never changes between renders.
+ */
+const EMPTY_INITIAL = Object.freeze({}) as Record<string, unknown>;
 
 function useInertiaFormShim<TData extends Record<string, unknown>>(initial: TData): InertiaForm<TData> {
   return inertiaUseForm(initial as any) as unknown as InertiaForm<TData>;
