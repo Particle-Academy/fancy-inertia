@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **`<Seo>` duplicated every tag the server baseline had already rendered,
+  instead of replacing them.** Pages served two `<meta name="description">` with
+  different text, plus doubled `og:*` and `twitter:*`. Confirmed live on the
+  showcase: 13 duplicated tags on a single page.
+
+  `head-key` is Inertia's convention *inside* `<Head>` — Inertia rewrites it to
+  `data-inertia` and dedupes on that. A `head-key` in a **Blade** template
+  (`particle-academy/fancy-seo`'s `<x-fancy-seo::head>`) is rewritten by nothing,
+  so Inertia's head manager cannot see it: `isInertiaManagedElement` tests for
+  `data-inertia` and nothing else. Every tag `<Seo>` emitted was appended beside
+  the server's copy. **Both packages documented a dedup that never happened.**
+
+  `<Seo>` now removes the baseline's copies of the keys it emits, once, on the
+  client. It removes **only** those keys — a baseline tag `<Seo>` does not
+  provide (a route-specific `keywords`, say) is left alone, because the server
+  knows things the client defaults do not. Inertia's own `data-inertia` elements
+  are never touched.
+
+  **No action needed** if you use `<Seo>` with the fancy-seo Blade baseline —
+  this is the behaviour that was already documented. If you were working around
+  the duplication by stripping tags yourself, you can stop.
+
+  **Not fixed by putting `data-inertia` on the Blade tags**, which is the obvious
+  one-line change and is worse: Inertia *deletes* what it manages, removing every
+  `data-inertia` element the current page does not re-emit. A tagged baseline
+  survives only on pages rendering a matching `<Seo>` — on any page with some
+  other `<Head>` and no `<Seo>`, the entire server-rendered head is silently
+  deleted after hydration. That is 109 of 305 pages on the showcase. Duplicated
+  tags traded for missing ones is not a fix.
+
 ### Changed
 
 - Widened the `@particle-academy/fancy-app-update` requirement from `^0.1.0` to `>=0.1 <2.0`, so a

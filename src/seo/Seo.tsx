@@ -43,6 +43,61 @@ export interface SeoProps {
 const INDEXABLE = "index, follow, max-image-preview:large";
 const NOINDEX = "noindex, nofollow";
 
+/**
+ * Remove the server baseline's copies of the tags this `<Seo>` now owns.
+ *
+ * ## Why this is needed at all
+ *
+ * `head-key` is Inertia's convention *inside* `<Head>` — Inertia's own head
+ * manager rewrites it to `data-inertia` and dedupes on that. A `head-key` in a
+ * **Blade** template (`<x-fancy-seo::head>`) is never rewritten by anything, so
+ * the manager cannot see it: `isInertiaManagedElement` tests for `data-inertia`
+ * and nothing else. The baseline is therefore invisible to dedup, and every tag
+ * `<Seo>` emits is **appended beside** the server's copy rather than replacing
+ * it.
+ *
+ * That is live and load-bearing: pages served two `<meta name="description">`
+ * with different text, plus duplicated `og:*` and `twitter:*`. Both packages
+ * documented a dedup that never happened.
+ *
+ * ## Why not just put `data-inertia` on the Blade tags
+ *
+ * Because Inertia *deletes* what it manages. Its update pass removes every
+ * `data-inertia` element that the current page does not re-emit
+ * (`index === -1 → remove()`). A baseline tagged that way survives only on pages
+ * that render a matching `<Seo>` — on any page that renders some other `<Head>`
+ * and no `<Seo>`, the whole server-rendered head is silently deleted after
+ * hydration. On the showcase that is 109 of 305 pages. Trading duplicated tags
+ * for *missing* tags is not a fix.
+ *
+ * So the layer that adds the duplicate is the layer that removes it, and it
+ * removes **only the keys it actually emits** — a baseline key `<Seo>` does not
+ * provide (a route-specific `keywords`, say) is left alone, because the server
+ * knows things the client defaults do not.
+ */
+function useRetireServerBaseline(emittedKeys: string[], active: boolean): void {
+  // Sorted + joined so the effect re-runs when the SET changes, not when the
+  // array identity does — this list is rebuilt on every render.
+  const keyList = [...emittedKeys].sort().join("|");
+
+  useEffect(() => {
+    if (!active || typeof document === "undefined") return;
+
+    for (const key of keyList ? keyList.split("|") : []) {
+      // `CSS.escape` is absent in some SSR/jsdom shims; attribute-scan instead
+      // of building a selector so a key containing quotes or colons is safe.
+      const stale = Array.from(document.head.querySelectorAll("[head-key]")).filter(
+        (el) =>
+          el.getAttribute("head-key") === key &&
+          // Never touch Inertia's own elements — only the un-managed baseline.
+          !el.hasAttribute("data-inertia") &&
+          !el.hasAttribute("inertia"),
+      );
+      for (const el of stale) el.remove();
+    }
+  }, [keyList, active]);
+}
+
 /** Apply a `"%s | Brand"` template to a page title (no-op without `%s`). */
 function applyTemplate(template: string | undefined, title: string): string {
   return template && template.includes("%s") ? template.replace("%s", title) : title;
@@ -111,7 +166,12 @@ export function Seo({
   const isClientOnly = clientOnly ?? defaults.clientOnly ?? false;
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
-  if (isClientOnly && !hydrated) return null;
+
+  // NOTE: the client-only bail-out lives just above the `return` at the bottom,
+  // NOT here. Every hook in this component has to run on every render — an early
+  // return above `useRetireServerBaseline` would make it conditional, and a
+  // hook count that changes between renders desyncs React and throws from inside
+  // it. `hydrated` flipping false -> true is exactly such a transition.
 
   // Fold per-page props over site defaults. A page passing nothing still gets a
   // complete, correct head from the provider.
@@ -128,6 +188,30 @@ export function Seo({
 
   const kw = Array.isArray(keywords) ? keywords.join(", ") : keywords;
   const nodes = jsonLd == null ? [] : Array.isArray(jsonLd) ? jsonLd : [jsonLd];
+
+  // Exactly the `head-key`s emitted below, under the same conditions. Used to
+  // retire the server baseline's copies — see `useRetireServerBaseline`.
+  const emittedKeys: string[] = [
+    ...(resolvedDescription ? ["description", "og:description", "twitter:description"] : []),
+    ...(kw ? ["keywords"] : []),
+    ...(resolvedCanonical ? ["canonical", "og:url"] : []),
+    "robots",
+    "og:type",
+    ...(resolvedSiteName ? ["og:site_name"] : []),
+    ...(resolvedTitle ? ["og:title", "twitter:title"] : []),
+    ...(resolvedImage ? ["og:image", "twitter:image"] : []),
+    ...(resolvedLocale ? ["og:locale"] : []),
+    "twitter:card",
+    ...(resolvedTwitterSite ? ["twitter:site"] : []),
+    ...(alternates ?? []).map((alt) => `alternate:${alt.hreflang}`),
+    ...nodes.map((_, i) => `ld-${i}`),
+  ];
+
+  useRetireServerBaseline(emittedKeys, !isClientOnly || hydrated);
+
+  // Every hook above this line. Client-only mode emits nothing on the server or
+  // the first client render, so markup matches and hydration cannot mismatch.
+  if (isClientOnly && !hydrated) return null;
 
   return (
     <Head title={resolvedTitle}>
