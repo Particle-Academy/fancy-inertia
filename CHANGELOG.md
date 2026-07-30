@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [0.9.4] — 2026-07-30
+
+### Fixed
+
+- **`useFancyForm` called a hook inside `useMemo`, unmounting the page on the
+  first state update.** The Inertia `useForm` shim was invoked inside a `useMemo`
+  keyed on `initialOrForm`, so it ran only when that memo recomputed. Pass a
+  **stable** reference — a module-level constant, or anything memoised — and the
+  memo is cached from the second render on, the inner hooks are skipped, React's
+  hook order desyncs, and the next render dies with `Cannot read properties of
+  undefined (reading 'length')` from deep inside React. The page unmounts to a
+  white screen and the error names none of the responsible code.
+
+  **It hid well, and the tidier your code the more likely you hit it.** Every
+  call site passing an inline object literal gets a new reference each render, so
+  the memo always recomputes and the hooks always run. Only callers who hoist
+  initial values to a constant were affected — 2 of 10 call sites in the app that
+  found it. It also survives page load and only dies on the first state update,
+  so it presents as a click-handler bug rather than a hook bug.
+
+  The shim is now called unconditionally at the top level, with a stable
+  module-level `EMPTY_INITIAL` when the caller supplied their own form. That
+  costs one idle Inertia form in that case, which is the right trade against a
+  conditional hook.
+
+  **No action needed** — the API is unchanged and the fix is internal.
+
+  The `eslint-disable` on that line silenced `exhaustive-deps`; the actual
+  violation was `rules-of-hooks`, which had never run because this repo had no
+  ESLint at all. It does now, and it is what makes this class of bug reportable.
+
 ### Fixed
 
 - **`<Seo>` duplicated every tag the server baseline had already rendered,
