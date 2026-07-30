@@ -1,7 +1,7 @@
 import { createInertiaApp } from "@inertiajs/react";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
-import type { ReactElement } from "react";
+import type { ComponentType, ReactElement } from "react";
 import { buildFancyAppTree, type FancyAppTreeOptions } from "../buildFancyAppTree";
 
 /** Inertia's default SSR cluster port. */
@@ -13,7 +13,10 @@ export interface CreateFancyServerOptions
    * Resolve a page name to its component — the SAME resolver as the client
    * entry (e.g. an `import.meta.glob` over `./Pages`). Required.
    */
-  resolve: (name: string) => unknown;
+  resolve: (name: string) =>
+    | ComponentType
+    | Promise<ComponentType>
+    | { default: ComponentType };
   /** SSR cluster port. Default `13714` (matches `config('inertia.ssr.url')`). */
   port?: number;
 }
@@ -56,8 +59,8 @@ export function createFancyServer({
         resolve,
         setup: ({ App, props }) =>
           buildFancyAppTree({
-            App: App as unknown as FancyAppTreeOptions["App"],
-            props: props as unknown as Record<string, unknown>,
+            App,
+            props,
             providers,
             appRoot,
             transition,

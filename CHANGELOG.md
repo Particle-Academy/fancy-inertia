@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-07-30
+
+### Fixed
+
+- **`setupFancyApp` now accepts Inertia 3's real `App` component and bootstrap
+  props types.** The prior structural type added a string index signature and
+  made `children` optional, which is narrower than Inertia 3.6's
+  `InertiaAppProps`. A correctly typed `createInertiaApp({ setup })` therefore
+  failed `tsc` even though the runtime integration was valid.
+
+  **No application change is required.** The runtime code and public call shape
+  are unchanged; this widens only the TypeScript integration boundary so each
+  supported Inertia major can supply its adapter-owned bootstrap props.
+
 ## [0.9.4] — 2026-07-30
 
 ### Fixed

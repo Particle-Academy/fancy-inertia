@@ -21,10 +21,18 @@ interface InertiaAppRenderArgs {
 }
 
 export interface FancyAppTreeOptions {
-  /** The Inertia `App` component handed to `setup`/`resolve`. */
-  App: ComponentType<{ children?: (args: InertiaAppRenderArgs) => ReactNode } & Record<string, unknown>>;
-  /** The Inertia page props handed to `setup`. */
-  props: Record<string, unknown>;
+  /**
+   * The Inertia `App` component handed to `setup`/`resolve`.
+   *
+   * Its exact props are intentionally owned by the installed Inertia adapter.
+   * Keeping this boundary open lets Inertia 1–3 supply their version-specific
+   * required bootstrap props while the render-prop contract below remains
+   * typed.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  App: ComponentType<any>;
+  /** The adapter-owned bootstrap props handed to Inertia's `App`. */
+  props: object;
   /**
    * Options forwarded to {@link FancyAppRoot} (Toast + optional ScreenSystem +
    * echarts). Pass `false` to omit the provider entirely.
