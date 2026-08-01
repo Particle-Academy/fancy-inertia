@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.9.6] — 2026-07-31
+
+### Security
+
+- **Fixed two high-severity ReDoS vulnerabilities in `<Seo>`** (CodeQL
+  `js/polynomial-redos`, alerts #1 and #2).
+
+  `buildCanonical` and `absoluteImage` trimmed slashes with `/\/+$/` and
+  `/^\/+/`. A quantifier anchored at one end is retried from every start
+  position, so a value carrying a long run of slashes costs time **quadratic in
+  its length**. Measured on the fix's own regression test: a 50,000-slash path
+  took **1.7s and 2.3s** through those two paths, against sub-millisecond now.
+
+  **This runs on every page render of every consuming app**, over a `siteUrl`
+  from host config and a `url` from the current route — neither of which the
+  component gets to vouch for. Both now use a linear character scan that cannot
+  backtrack at all.
+
+  **Upgrade, and do nothing else.** Behaviour is identical for every input:
+  same canonical, same absolute image, same handling of repeated slashes at
+  either end. There is no API change and no configuration to review.
+
+  The regression test asserts a timing bound as well as correctness, because
+  correctness alone passes against the vulnerable version too. It fails against
+  0.9.5, which is the only reason to trust it.
+
 ## [0.9.5] — 2026-07-30
 
 ### Fixed

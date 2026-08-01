@@ -103,17 +103,52 @@ function applyTemplate(template: string | undefined, title: string): string {
   return template && template.includes("%s") ? template.replace("%s", title) : title;
 }
 
+const SLASH = 47; // "/"
+
+/**
+ * Trim slashes from one end, without a regex.
+ *
+ * `/\/+$/` and `/^\/+/` are polynomial-ReDoS shapes — CodeQL
+ * `js/polynomial-redos`, reported twice here at high severity. A quantifier
+ * anchored at one end is retried from every start position, so a string of many
+ * slashes costs time quadratic in its length.
+ *
+ * A URL is not usually attacker-controlled, but "not usually" is the whole
+ * problem: these run on **every page render of every consuming app**, and
+ * `siteUrl` and `url` arrive from host config and the current route — neither of
+ * which this component gets to vouch for. A character scan is linear, cannot
+ * backtrack at all, and is simpler than reasoning about whether some route could
+ * ever carry a few thousand slashes.
+ */
+function trimSlashes(value: string, from: "start" | "end"): string {
+  if (from === "end") {
+    let end = value.length;
+    while (end > 0 && value.charCodeAt(end - 1) === SLASH) end--;
+
+    return value.slice(0, end);
+  }
+
+  let start = 0;
+  while (start < value.length && value.charCodeAt(start) === SLASH) start++;
+
+  return value.slice(start);
+}
+
 /** Absolute root + path → clean canonical (strip query, drop trailing slash). */
 function buildCanonical(siteUrl: string, url: string): string {
-  const base = siteUrl.replace(/\/+$/, "");
-  const path = (url.split(/[?#]/)[0] ?? "").replace(/\/+$/, "");
+  const base = trimSlashes(siteUrl, "end");
+  const path = trimSlashes(url.split(/[?#]/)[0] ?? "", "end");
+
   return path === "" ? `${base}/` : `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
 /** Make a root-relative image absolute against the configured site root. */
 function absoluteImage(image: string | undefined, siteUrl: string | undefined): string | undefined {
+  // `/^https?:\/\//` is anchored with no quantifier over a repeatable class, so
+  // it has no backtracking to exploit and stays a regex.
   if (!image || /^https?:\/\//.test(image) || !siteUrl) return image;
-  return `${siteUrl.replace(/\/+$/, "")}/${image.replace(/^\/+/, "")}`;
+
+  return `${trimSlashes(siteUrl, "end")}/${trimSlashes(image, "start")}`;
 }
 
 /**
