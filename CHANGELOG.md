@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.9.7] — 2026-08-03
+
+### Fixed
+
+- **The optional `fancy-screens` peer no longer blocks a clean install.** Its
+  range was `^0.4.0 || ^0.5.0` — a caret on a `0.x` locks the MINOR, so
+  `fancy-screens@0.6.0` read to the resolver as a *conflict* rather than an
+  upgrade. It is now `>=0.4 <2.0`.
+
+  A fresh `npm install` in an app depending on both **failed outright** with
+  `ERESOLVE`, which is how this was found: the Laravel starter kit could not be
+  scaffolded from scratch once it moved to fancy-screens 0.6. An incremental
+  install against an existing lockfile did not fail, so nothing reported it
+  until a clean tree was built.
+
+  **What you must DO: nothing.** Widening only adds candidates — whatever
+  version you resolve today still resolves. If you pinned around this with
+  `--legacy-peer-deps` or an `overrides` entry, you can drop it.
+
+  Built and tested against `fancy-screens@0.6.0`.
+
 ## [0.9.6] — 2026-07-31
 
 ### Security
