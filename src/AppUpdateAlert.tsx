@@ -51,7 +51,12 @@ const POSITION: Record<AppUpdateAlertPosition, CSSProperties> = {
 /**
  * Drop-in "a new version is available — refresh" prompt. Detects a redeploy via
  * {@link useAppUpdate} and, by default, shows a dismissible react-fancy Callout
- * (in a Portal) with a Refresh button. Mount once near your app root — it renders
+ * (in a Portal) with a Refresh button. Mount once, INSIDE Inertia's `<App>` — the easiest way is
+ * `setupFancyApp({ appUpdate: true })`.
+ *
+ * Not from the `providers` slot: that receives the subtree CONTAINING `<App>`,
+ * so the component lands outside the Inertia context and `usePage()` throws,
+ * taking the page down with it — it renders
  * nothing until an update is detected.
  *
  * ```tsx

@@ -1,7 +1,7 @@
 {
   "name": "@particle-academy/fancy-inertia",
-  "version": "0.10.1",
-  "description": "Inertia.js integration for the fancy UI set — app-shell providers, SSR helpers, useFancyForm() bridge, schema-driven page rendering.",
+  "version": "0.11.0",
+  "description": "Inertia.js integration for the fancy UI set \u2014 app-shell providers, SSR helpers, useFancyForm() bridge, schema-driven page rendering.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Particle-Academy/fancy-inertia.git"

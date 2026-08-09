@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import { AppUpdateAlert, type AppUpdateAlertProps } from "./AppUpdateAlert";
 import { FancyAppRoot, type FancyAppRootProps } from "./FancyAppRoot";
 import {
   FancyTransitionProvider,
@@ -49,6 +50,16 @@ export interface FancyAppTreeOptions {
    * `false` to render pages without the transition wrapper.
    */
   transition?: FancyTransition | false;
+  /**
+   * Mount {@link AppUpdateAlert} once, inside Inertia's `<App>`.
+   *
+   * `true` for defaults, or the alert's props. It cannot be mounted from
+   * `providers`: that slot receives the subtree CONTAINING `<App>`, so anything
+   * rendered beside the outlet is outside the Inertia context and `usePage()`
+   * throws, taking the page down. This is the only in-package slot that is both
+   * "once, near the root" and inside that context.
+   */
+  appUpdate?: boolean | AppUpdateAlertProps;
 }
 
 /**
@@ -67,6 +78,7 @@ export function buildFancyAppTree({
   appRoot,
   providers,
   transition = "fade",
+  appUpdate = false,
 }: FancyAppTreeOptions): ReactNode {
   const wrap = providers ?? ((outlet: ReactNode) => outlet);
 
@@ -76,10 +88,23 @@ export function buildFancyAppTree({
         const Page = Component;
         const child = <Page {...pageProps} />;
         const rendered = Page.layout ? Page.layout(child) : child;
-        return transition === false ? (
-          rendered
-        ) : (
-          <FancyPageTransition pageKey={key ?? ""}>{rendered}</FancyPageTransition>
+        const page =
+          transition === false ? (
+            rendered
+          ) : (
+            <FancyPageTransition pageKey={key ?? ""}>{rendered}</FancyPageTransition>
+          );
+
+        if (!appUpdate) return page;
+
+        // Rendered as a stable sibling of the page, inside `<App>`. Position is
+        // what keeps React from remounting it on navigation, so the poll timer
+        // and the dismissed flag survive a page swap.
+        return (
+          <>
+            {page}
+            <AppUpdateAlert {...(appUpdate === true ? {} : appUpdate)} />
+          </>
         );
       }}
     </App>

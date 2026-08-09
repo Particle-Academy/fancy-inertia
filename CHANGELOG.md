@@ -2,6 +2,54 @@
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-08-09
+
+### Added
+
+- **`appUpdate` on `setupFancyApp` / `buildFancyAppTree`**, mounting
+  `AppUpdateAlert` inside Inertia's `<App>`. (#5)
+
+  ```jsx
+  setupFancyApp({ el, App, props, appUpdate: true })
+  // or: appUpdate: { position: "bottom" }
+  ```
+
+  There was previously **no working mount point**. `AppUpdateAlert`'s docblock
+  said "mount once near your app root", but the only slot for that — `providers`
+  — receives the subtree *containing* `<App>`, so the documented mount put the
+  component outside the Inertia context, `usePage()` threw, and the page went
+  white with `usePage must be used within the Inertia component`. `FancyAppRoot`
+  had no flag for it, and a page/layout mount is per-page rather than once at the
+  root.
+
+  Since `fancy-app-update` is a hard dependency of this package, shipping it with
+  no usable mount was a trap. This matches how `withScreens` / `withECharts`
+  already work.
+
+  The alert renders as a stable sibling of the page inside `<App>`, so React does
+  not remount it on navigation and the poll timer and dismissed flag survive a
+  page swap.
+
+### Fixed
+
+- **`AppUpdateAlert`'s docblock no longer describes a mount that throws.** It now
+  says explicitly that it must be inside `<App>`, and why `providers` does not
+  work.
+
+### Documentation
+
+- **`useAppUpdate` now explains the 409 in your console.** The poll deliberately
+  triggers a 409, and browsers log any non-2xx response unconditionally — it
+  cannot be suppressed from JavaScript, and the hook is handling it correctly
+  rather than failing. Polling stops once detection fires, so it is once per
+  deploy, not every interval.
+
+  Deliberately **not** swapped for a `HEAD`: Inertia's version check only runs
+  for Inertia GETs, so a HEAD would not 409 at all — the detector would go quiet
+  *and* stop working, which is worse than a console line. A dedicated endpoint
+  would work but costs the "no extra endpoint" property that makes this
+  zero-config. Consumers who want silence can pass their own `check`.
+
 ## [0.10.1] — 2026-08-07
 
 ### Fixed
