@@ -17,7 +17,7 @@ npm install @particle-academy/fancy-inertia
 ```
 
 **Peer dependencies:**
-- `react >= 18`, `react-dom >= 18`
+- `react ^19.0.0`, `react-dom ^19.0.0`
 - `@inertiajs/react >= 1`
 - `@particle-academy/react-fancy >= 3` — `<FancyAppRoot>` mounts `Toast.Provider`
 - `@particle-academy/fancy-screens >= 0.4` (optional) — `<InertiaSchemaScreen>` and the `withScreens` flag
