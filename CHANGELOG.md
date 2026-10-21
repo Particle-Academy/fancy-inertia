@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **The suite now runs against the first-party versions consumers actually
+  install.** devDependencies moved from react-fancy 4.4.3 to 5.51.0,
+  fancy-echarts 5.0.0 to 6.1.0, fancy-screens 0.6.0 to 0.7.1 and fancy-pwa
+  0.1.5 to 0.2.0, and the lockfile now resolves fancy-app-update 0.3.0 (its
+  range was already `>=0.1 <2.0`; only the lockfile had stayed on 0.1.1). The
+  suite, `tsc` and the build were green before the move and stayed green after
+  it, with no source change. **Nothing for a consumer to do**: devDependencies
+  are not installed by consumers, and no published range changed here.
+
 ### Fixed
 
 - **`CHANGELOG.md` is now in the published tarball.** `files` did not whitelist it, so npm never shipped it — and this package puts breaking changes in MINOR releases and tells you in the README to read the entry before taking one. The instruction existed for the author, who has the file, and not for the consumer, who is the only one being instructed. Nothing for you to do; the file simply arrives from this release on.
