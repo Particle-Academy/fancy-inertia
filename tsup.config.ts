@@ -7,6 +7,7 @@ export default defineConfig({
     "server/index": "src/server/index.ts",
     "pwa/index": "src/pwa/index.ts",
     stack: "src/stack.tsx",
+    "whats-new": "src/whats-new.ts",
   },
   format: ["esm", "cjs"],
   dts: true,

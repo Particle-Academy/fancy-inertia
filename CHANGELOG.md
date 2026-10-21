@@ -5,6 +5,22 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-10-21
+
+**Nothing to do on upgrade.** One new entry; nothing existing changed.
+
+### Added
+
+- **`createHttpStorage({ url })`, on `@particle-academy/fancy-inertia/whats-new`.**
+  A per-account last-seen store for `@particle-academy/fancy-whats-new`'s
+  `storage` prop, so a notice shown once stays shown once across a person's
+  devices. `load` GETs `{ seen }`, `save` PUTs `{ seen }` same-origin with
+  Laravel's `X-XSRF-TOKEN` from the `XSRF-TOKEN` cookie; both throw on a non-2xx
+  answer (a failed load shows nothing, a failed save is retried on close).
+  `field`, `method`, `headers` and `fetch` are options. The README has the
+  Laravel side: one nullable column and two routes. It imports nothing from
+  fancy-whats-new and adds no dependency: a store is just `{ load, save }`.
+
 ## [0.12.0] — 2026-10-20
 
 ### Added

@@ -60,6 +60,7 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `useAppUpdate()` + `<AppUpdateAlert>` | Detect a redeploy (new build) while the page is open and prompt to refresh — zero-config via Inertia's asset version; customizable alert + refresh action ([AppUpdate.md](docs/AppUpdate.md)) |
 | `<AppUpdateStack>` <sub>`/stack`</sub> | The stacked notice that says what is new: feature cards (with images) behind a refresh action, Inertia detection by default ([AppUpdate.md](docs/AppUpdate.md#stacked-notice-say-what-is-new)) |
 | `useInertiaVersionCheck()` | The Inertia redeploy detector as a `check` for any fancy-app-update component |
+| `createHttpStorage()` <sub>`/whats-new`</sub> | A per-account last-seen store for `@particle-academy/fancy-whats-new`, so "shown once" follows a person across devices (see below) |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns your server controller into the source of truth for an entire page layout |
@@ -85,6 +86,57 @@ import { FancyInertiaPwa } from "@particle-academy/fancy-inertia/pwa";
 - **`<FancyInertiaPwa>`** — wires both + renders default chrome (update prompt + "you're offline" notice); every piece is opt-out via props.
 
 Deliberately **not** here: caching page responses / a service worker that intercepts navigations — that fights Inertia's server-driven model (stale CSRF, stale content). Reach for that only as a separate, carefully-scoped module on read-only routes.
+
+## Seen-once notices, per account (`/whats-new`)
+
+[`@particle-academy/fancy-whats-new`](https://github.com/Particle-Academy/fancy-whats-new)
+shows groups of cards once (release notes after an update, a welcome, new
+posts) and remembers the newest one each person saw. By default that memory is
+the browser's `localStorage`, so a second device shows everything again.
+`createHttpStorage` keeps it on the account instead, behind one route:
+
+```tsx
+import { WhatsNew } from "@particle-academy/fancy-whats-new";
+import { createHttpStorage } from "@particle-academy/fancy-inertia/whats-new";
+
+// Module level (or useMemo): one store, not a new one per render.
+const accountStorage = createHttpStorage({ url: "/me/seen-notices" });
+
+// Signed in: the account. A guest: leave `storage` unset for localStorage.
+<WhatsNew load={load} storage={user ? accountStorage : undefined} />
+```
+
+The Laravel side is one nullable column and two routes:
+
+```php
+// migration: $table->string('seen_notices', 191)->nullable();  (on users)
+
+// routes/web.php
+use Illuminate\Http\Request;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/me/seen-notices', fn (Request $request) => [
+        'seen' => $request->user()->seen_notices,
+    ]);
+
+    Route::put('/me/seen-notices', function (Request $request) {
+        $data = $request->validate(['seen' => ['required', 'string', 'max:191']]);
+        $request->user()->forceFill(['seen_notices' => $data['seen']])->save();
+
+        return response()->noContent();
+    });
+});
+```
+
+- `load` GETs `{ seen }`; `save` PUTs `{ seen: "<cursor>" }`, same-origin, with
+  Laravel's `X-XSRF-TOKEN` header read from the `XSRF-TOKEN` cookie (the header
+  axios sends), so the `web` middleware's CSRF check passes with no extra setup.
+- **Both halves throw on a non-2xx answer, deliberately.** A failed load makes
+  the notice show nothing rather than treat the person as a first visitor; a
+  failed save is tried again when they close it.
+- `field`, `method` (`"PUT"` | `"POST"` | `"PATCH"`), extra `headers` and a
+  custom `fetch` are options. It imports nothing from fancy-whats-new: a store is
+  just `{ load, save }`.
 
 ## Page transitions
 
