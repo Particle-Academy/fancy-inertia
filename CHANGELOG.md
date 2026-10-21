@@ -5,6 +5,8 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-10-20
+
 ### Added
 
 - **`AppUpdateStack`, on `@particle-academy/fancy-inertia/stack`.** (#6)
