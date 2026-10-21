@@ -20,7 +20,17 @@ version and flags an update on a 409 — **no extra endpoint, no config**.
 
 ## Drop-in component
 
-Mount once near your app root (it renders nothing until an update is detected):
+Mount once, **inside Inertia's `<App>`** (it renders nothing until an update is
+detected). The easiest way is `setupFancyApp`:
+
+```tsx
+setupFancyApp({ el, App, props, appUpdate: true });
+// or the alert's props:
+setupFancyApp({ el, App, props, appUpdate: { position: "bottom" } });
+```
+
+Mounting it from the `providers` slot does not work: that slot wraps the
+subtree *containing* `<App>`, so `usePage()` throws. Inside a page or layout:
 
 ```tsx
 import { AppUpdateAlert } from "@particle-academy/fancy-inertia";
@@ -61,6 +71,66 @@ import { AppUpdateAlert } from "@particle-academy/fancy-inertia";
 
 The default UI needs `@particle-academy/react-fancy` (a peer). The `render` /
 `children` override does not.
+
+## Stacked notice: say what is new
+
+`AppUpdateStack` is fancy-app-update's stacked notice with the same Inertia
+default. When a release has a message, its feature cards stack behind each
+other (react-fancy's `Toast.Stack`: scroll or arrow keys walk through them),
+each with a close button and a **Refresh to get the latest** action. A release
+with no message (a hotfix) gets the plain refresh notice.
+
+It lives on its own entry, so apps that never show it never load it:
+
+```tsx
+import { AppUpdateStack } from "@particle-academy/fancy-inertia/stack";
+
+setupFancyApp({
+  el, App, props,
+  appUpdate: (
+    <AppUpdateStack
+      // cards, or a loader called ONCE, when an update is detected
+      features={() => fetch("/whats-new").then((r) => r.json())}
+      position="bottom-right"
+    />
+  ),
+});
+```
+
+`appUpdate` takes the element itself, so the package root never imports the
+stack. Each feature is `{ id?, title, description?, image?, imageAlt? }`;
+`image` runs full width as the card's header.
+
+Every prop is fancy-app-update's `AppUpdateStack` prop and passes straight
+through: `features`, `title` / `description` / `refreshLabel` / `closeLabel`,
+`color`, `position` (a corner, `top` / `bottom`, or `"inline"`), `style`,
+`className`, `cardClassName`, `depth`, `offset`, `label`, `onRefresh`,
+`onDismiss`, `renderFeature`, `render`, and every detector option. A `check`
+(or `currentVersion` + `latestVersion`) replaces the Inertia default, as it
+does everywhere else.
+
+**Needs `@particle-academy/react-fancy` >=5.41.0** (that is where `Toast.Stack`
+arrived). The package root still works on react-fancy 3 and up; only this entry
+needs the newer one. On an older react-fancy it renders nothing and logs one
+console error naming the version, rather than crashing the page.
+
+## The Inertia check on its own
+
+`useInertiaVersionCheck()` returns the Inertia detector as a `check`, so any
+fancy-app-update component or hook can use it directly:
+
+```tsx
+import { useInertiaVersionCheck } from "@particle-academy/fancy-inertia";
+import { AppUpdateAlert } from "@particle-academy/fancy-app-update";
+
+function Prompt() {
+  const check = useInertiaVersionCheck();      // { pingUrl } optional
+  return <AppUpdateAlert check={check} />;
+}
+```
+
+It resolves `true` on a 409 and `false` otherwise, including on a network
+error. Like everything here it reads `usePage()`, so call it inside `<App>`.
 
 ## Headless hook
 

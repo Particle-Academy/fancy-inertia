@@ -117,4 +117,32 @@ describe("appUpdate mount point", () => {
 
     expect(pathTo(tree, AppUpdateAlert)).not.toBeNull();
   });
+
+  // The stacked notice (#6) is an ELEMENT you pass, so the package root never
+  // imports `/stack`. It gets the same slot, for the same reason: it reads
+  // usePage(), so it has to be inside <App>.
+  it("mounts a given element inside <App> instead of the alert", () => {
+    function MyNotice() {
+      return null;
+    }
+    const tree = buildFancyAppTree({ ...opts, appUpdate: <MyNotice /> });
+
+    const path = pathTo(tree, MyNotice);
+
+    expect(path, "the element was not found in the tree").not.toBeNull();
+    expect(path!.indexOf("StubApp")).toBeGreaterThanOrEqual(0);
+    expect(path!.indexOf("StubApp")).toBeLessThan(path!.length - 1);
+    // An element is not alert props: the alert must not ALSO mount.
+    expect(pathTo(tree, AppUpdateAlert)).toBeNull();
+  });
+
+  it("keeps the element inside <App> with transitions off", () => {
+    function MyNotice() {
+      return null;
+    }
+    const tree = buildFancyAppTree({ ...opts, appUpdate: <MyNotice />, transition: false });
+
+    expect(pathTo(tree, MyNotice)).not.toBeNull();
+    expect(pathTo(tree, AppUpdateAlert)).toBeNull();
+  });
 });

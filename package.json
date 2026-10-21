@@ -53,6 +53,16 @@
         "types": "./dist/pwa/index.d.cts",
         "default": "./dist/pwa/index.cjs"
       }
+    },
+    "./stack": {
+      "import": {
+        "types": "./dist/stack.d.ts",
+        "default": "./dist/stack.js"
+      },
+      "require": {
+        "types": "./dist/stack.d.cts",
+        "default": "./dist/stack.cjs"
+      }
     }
   },
   "files": [
@@ -79,14 +89,14 @@
     "particle-academy"
   ],
   "dependencies": {
-    "@particle-academy/fancy-app-update": ">=0.1 <2.0"
+    "@particle-academy/fancy-app-update": ">=0.3 <2.0"
   },
   "peerDependencies": {
     "@inertiajs/react": "^1.0.0 || ^2.0.0 || ^3.0.0",
-    "@particle-academy/fancy-echarts": ">=3",
-    "@particle-academy/fancy-pwa": ">=0.1",
+    "@particle-academy/fancy-echarts": ">=3 <7",
+    "@particle-academy/fancy-pwa": ">=0.1 <2.0",
     "@particle-academy/fancy-screens": ">=0.4 <2.0",
-    "@particle-academy/react-fancy": ">=3",
+    "@particle-academy/react-fancy": ">=3 <6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

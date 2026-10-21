@@ -1,8 +1,77 @@
 # Changelog
 
+This package is pre-1.0: breaking changes land in MINOR releases. Read the
+entry before taking one; each breaking change says what you must do.
+
 ## [Unreleased]
 
+### Added
+
+- **`AppUpdateStack`, on `@particle-academy/fancy-inertia/stack`.** (#6)
+  fancy-app-update 0.3.0's stacked refresh notice with fancy-inertia's Inertia
+  version check as its default detector, exactly as `AppUpdateAlert` has. A
+  release with a message shows its feature cards stacked (react-fancy's
+  `Toast.Stack`), each with a close button and a refresh action; a hotfix with
+  no message gets the plain notice. It wraps the core component rather than
+  copying it, so every core prop passes straight through: `features` (cards or
+  a loader called once, when an update is detected), the labels, `position`,
+  `render`, `renderFeature`, and a `check` (or `currentVersion` +
+  `latestVersion`) that replaces the Inertia default.
+
+  ```tsx
+  import { AppUpdateStack } from "@particle-academy/fancy-inertia/stack";
+  ```
+
+  A subpath rather than the root, mirroring fancy-app-update: it is the only
+  thing here that needs react-fancy >=5.41.0, so the root keeps working on
+  older react-fancy versions and apps that never show a stack never load it.
+  On a react-fancy without `Toast.Stack` it renders nothing and logs one error
+  naming the version it needs, instead of crashing the page.
+
+- **`useInertiaVersionCheck()`**, the Inertia detector on its own (root
+  export, also re-exported from `/stack`). It returns a
+  `() => Promise<boolean>` that any fancy-app-update component or hook takes as
+  `check`: `<AppUpdateAlert check={useInertiaVersionCheck()} />` from the core
+  package now detects an Inertia redeploy. `useAppUpdate` uses it internally;
+  its behaviour is unchanged.
+
+- **`setupFancyApp({ appUpdate })` / `buildFancyAppTree` take an element**,
+  mounted inside Inertia's `<App>` in place of the alert:
+
+  ```tsx
+  setupFancyApp({ el, App, props, appUpdate: <AppUpdateStack features={loadNotes} /> });
+  ```
+
+  An element, not a `variant: "stack"` flag, because a flag would make the root
+  import the stack entry for every app. `true` and an `AppUpdateAlertProps`
+  object do exactly what they did before.
+
 ### Changed
+
+- **Peer ranges are bounded at the next major.** react-fancy `>=3` is now
+  `>=3 <6`, fancy-echarts `>=3` is `>=3 <7`, fancy-pwa `>=0.1` is
+  `>=0.1 <2.0` (the suite's sibling convention). Every version that satisfied
+  the old range and exists today still satisfies the new one, so **nothing for
+  you to do**. An open range promised compatibility with majors nobody had
+  tested; the bound makes the next major a deliberate step.
+
+- **The react-fancy floor did NOT rise for the stack.** `/stack` needs
+  react-fancy >=5.41.0, but npm cannot give one subpath its own peer range, and
+  raising the package floor would break every app on react-fancy 3 to 5.40 that
+  never uses the stack. The requirement is carried instead by fancy-app-update
+  0.3.0's own optional peer (`>=5.41.0 <6.0.0`, which npm checks whenever
+  react-fancy is installed), by the docs, and by the runtime message above.
+  **To use the stack, have react-fancy >=5.41.0. Otherwise, do nothing.**
+
+- **The `fancy-app-update` dependency floor is now `>=0.3`** (was `>=0.1`),
+  because `/stack` imports its 0.3.0 `stack` entry. It is a dependency, not a
+  peer, so this cannot fail an install: npm resolves 0.3.0 for this package,
+  nested if your app pins an older copy itself. A fresh install already
+  resolved 0.3.0 under the old range. **Nothing for you to do.** (fancy-app-update
+  0.3.0 brings an optional react-fancy peer of `>=5.41.0 <6.0.0`; on an older
+  react-fancy npm prints an `ERESOLVE overriding peer dependency` warning and
+  installs. It did that under 0.11.0 too, from any install made after 0.3.0
+  shipped.)
 
 - **The suite now runs against the first-party versions consumers actually
   install.** devDependencies moved from react-fancy 4.4.3 to 5.51.0,

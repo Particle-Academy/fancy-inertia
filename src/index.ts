@@ -35,6 +35,11 @@ export type { FancyAppTreeOptions } from "./buildFancyAppTree";
 export { useAppUpdate } from "./useAppUpdate";
 export type { UseAppUpdateOptions, AppUpdate } from "./useAppUpdate";
 
+// The Inertia detector on its own, for any fancy-app-update component's `check`.
+// `AppUpdateStack` is NOT here: it lives on `@particle-academy/fancy-inertia/stack`.
+export { useInertiaVersionCheck } from "./useInertiaVersionCheck";
+export type { InertiaVersionCheckOptions } from "./useInertiaVersionCheck";
+
 export { AppUpdateAlert } from "./AppUpdateAlert";
 export type { AppUpdateAlertProps, AppUpdateAlertPosition } from "./AppUpdateAlert";
 

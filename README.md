@@ -19,9 +19,10 @@ npm install @particle-academy/fancy-inertia
 **Peer dependencies:**
 - `react ^19.0.0`, `react-dom ^19.0.0`
 - `@inertiajs/react >= 1`
-- `@particle-academy/react-fancy >= 3` — `<FancyAppRoot>` mounts `Toast.Provider`
-- `@particle-academy/fancy-screens >= 0.4` (optional) — `<InertiaSchemaScreen>` and the `withScreens` flag
-- `@particle-academy/fancy-echarts >= 3` (optional) — the `withECharts` flag
+- `@particle-academy/react-fancy >=3 <6` — `<FancyAppRoot>` mounts `Toast.Provider`; the `/stack` entry needs `>=5.41.0`
+- `@particle-academy/fancy-screens >=0.4 <2.0` (optional) — `<InertiaSchemaScreen>` and the `withScreens` flag
+- `@particle-academy/fancy-echarts >=3 <7` (optional) — the `withECharts` flag
+- `@particle-academy/fancy-pwa >=0.1 <2.0` (optional) — the service-worker half of `/pwa`
 
 ## Quick start
 
@@ -57,6 +58,8 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `createFancyServer()` <sub>`/server`</sub> | The SSR entry (`ssr.tsx`) — renders pages in the same Fancy provider tree the client hydrates |
 | `<Seo>` + JSON-LD builders <sub>`/seo`</sub> | Terse per-page SEO over Inertia `<Head>` — title/description/canonical/OG/Twitter + `application/ld+json` in one component ([SEO.md](docs/SEO.md)) |
 | `useAppUpdate()` + `<AppUpdateAlert>` | Detect a redeploy (new build) while the page is open and prompt to refresh — zero-config via Inertia's asset version; customizable alert + refresh action ([AppUpdate.md](docs/AppUpdate.md)) |
+| `<AppUpdateStack>` <sub>`/stack`</sub> | The stacked notice that says what is new: feature cards (with images) behind a refresh action, Inertia detection by default ([AppUpdate.md](docs/AppUpdate.md#stacked-notice-say-what-is-new)) |
+| `useInertiaVersionCheck()` | The Inertia redeploy detector as a `check` for any fancy-app-update component |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
 | `<InertiaSchemaScreen>` | One-liner page that renders `<Screen schema={page.props.schema} />` — turns your server controller into the source of truth for an entire page layout |
@@ -180,7 +183,7 @@ export const useUserStore = create(
 | [Recipes.md](docs/Recipes.md) | End-to-end patterns: forms, schema-driven pages |
 | [SSR.md](docs/SSR.md) | Turning SSR on (`createFancyServer` + `setupFancyApp`) + the per-package SSR-safety matrix |
 | [SEO.md](docs/SEO.md) | Per-page SEO — `<Seo>` + JSON-LD builders, pairing with the `fancy-seo` server baseline |
-| [AppUpdate.md](docs/AppUpdate.md) | "New version available — refresh" detection: `useAppUpdate` + `<AppUpdateAlert>` |
+| [AppUpdate.md](docs/AppUpdate.md) | "New version available — refresh" detection: `useAppUpdate` + `<AppUpdateAlert>` + `<AppUpdateStack>` + `useInertiaVersionCheck` |
 | [Migration.md](docs/Migration.md) | 0.1.x → 0.2.x: drop `usePersistFancyState`; optional peers (`fancy-screens`/`fancy-echarts`) stay lazy as of 0.2.1 |
 
 ## License

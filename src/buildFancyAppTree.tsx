@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+import { isValidElement, type ComponentType, type ReactElement, type ReactNode } from "react";
 import { AppUpdateAlert, type AppUpdateAlertProps } from "./AppUpdateAlert";
 import { FancyAppRoot, type FancyAppRootProps } from "./FancyAppRoot";
 import {
@@ -51,15 +51,27 @@ export interface FancyAppTreeOptions {
    */
   transition?: FancyTransition | false;
   /**
-   * Mount {@link AppUpdateAlert} once, inside Inertia's `<App>`.
+   * Mount an update prompt once, inside Inertia's `<App>`.
    *
-   * `true` for defaults, or the alert's props. It cannot be mounted from
+   * `true` mounts {@link AppUpdateAlert} with defaults; an object is the
+   * alert's props. To mount a different prompt -- the stacked notice -- pass
+   * the ELEMENT:
+   *
+   * ```tsx
+   * import { AppUpdateStack } from "@particle-academy/fancy-inertia/stack";
+   * setupFancyApp({ el, App, props, appUpdate: <AppUpdateStack features={loadNotes} /> });
+   * ```
+   *
+   * An element rather than a `variant` flag so the package root never imports
+   * the stack entry (and the react-fancy >=5.41.0 it is built from).
+   *
+   * It cannot be mounted from
    * `providers`: that slot receives the subtree CONTAINING `<App>`, so anything
    * rendered beside the outlet is outside the Inertia context and `usePage()`
    * throws, taking the page down. This is the only in-package slot that is both
    * "once, near the root" and inside that context.
    */
-  appUpdate?: boolean | AppUpdateAlertProps;
+  appUpdate?: boolean | AppUpdateAlertProps | ReactElement;
 }
 
 /**
@@ -103,7 +115,11 @@ export function buildFancyAppTree({
         return (
           <>
             {page}
-            <AppUpdateAlert {...(appUpdate === true ? {} : appUpdate)} />
+            {isValidElement(appUpdate) ? (
+              appUpdate
+            ) : (
+              <AppUpdateAlert {...(appUpdate === true ? {} : appUpdate)} />
+            )}
           </>
         );
       }}

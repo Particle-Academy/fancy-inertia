@@ -1,5 +1,4 @@
-import { useCallback } from "react";
-import { usePage } from "@inertiajs/react";
+import { inertiaDefaultCheck, useInertiaVersionCheck } from "./useInertiaVersionCheck";
 import {
   useAppUpdate as useAppUpdateCore,
   type UseAppUpdateOptions,
@@ -41,39 +40,9 @@ export type { UseAppUpdateOptions, AppUpdate } from "@particle-academy/fancy-app
  * (or `currentVersion` + `latestVersion`) pointing at an endpoint of your own.
  */
 export function useAppUpdate(options: UseAppUpdateOptions = {}): AppUpdate {
-  const page = usePage() as { version?: string | null; component?: string };
-  const loadedVersion = page.version ?? "";
-  const component = page.component ?? "";
-
   // The zero-config Inertia detector: a stale X-Inertia-Version → 409.
-  const inertiaCheck = useCallback(async (): Promise<boolean> => {
-    if (typeof window === "undefined") return false;
-    const url = options.pingUrl ?? window.location.pathname + window.location.search;
-    try {
-      const res = await fetch(url, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-          "X-Inertia": "true",
-          "X-Inertia-Version": loadedVersion,
-          // Partial reload requesting a prop that doesn't exist → tiny response
-          // when the version IS current (the 409 version check runs first).
-          "X-Inertia-Partial-Component": component,
-          "X-Inertia-Partial-Data": "__app_update_ping__",
-          "X-Requested-With": "XMLHttpRequest",
-          Accept: "text/html, application/xhtml+xml",
-        },
-      });
-      return res.status === 409;
-    } catch {
-      return false; // network blip — never false-positive
-    }
-  }, [options.pingUrl, loadedVersion, component]);
-
-  // Consumer's own `check` wins; a version-compare pair is left to the core;
-  // otherwise default to the Inertia 409 detector.
-  const usesVersionCompare = options.currentVersion != null && options.latestVersion != null;
-  const check = options.check ?? (usesVersionCompare ? undefined : inertiaCheck);
+  const inertiaCheck = useInertiaVersionCheck({ pingUrl: options.pingUrl });
+  const check = inertiaDefaultCheck(options, inertiaCheck);
 
   return useAppUpdateCore({ ...options, check });
 }
