@@ -60,6 +60,7 @@ Every page below now has Toast / Screen.System / echarts registered.
 | `useAppUpdate()` + `<AppUpdateAlert>` | Detect a redeploy (new build) while the page is open and prompt to refresh — zero-config via Inertia's asset version; customizable alert + refresh action ([AppUpdate.md](docs/AppUpdate.md)) |
 | `<AppUpdateStack>` <sub>`/stack`</sub> | The stacked notice that says what is new: feature cards (with images) behind a refresh action, Inertia detection by default ([AppUpdate.md](docs/AppUpdate.md#stacked-notice-say-what-is-new)) |
 | `useInertiaVersionCheck()` | The Inertia redeploy detector as a `check` for any fancy-app-update component |
+| `<WhatsNew>` <sub>`/whats-new`</sub> | `@particle-academy/fancy-whats-new`'s seen-once notice, with `seenUrl` for a per-account "seen" (see below) |
 | `createHttpStorage()` <sub>`/whats-new`</sub> | A per-account last-seen store for `@particle-academy/fancy-whats-new`, so "shown once" follows a person across devices (see below) |
 | `useFancyForm()` | Inertia `useForm()` wrapper with a `field(name)` helper that drops directly into react-fancy's `<Input>`, `<Select>`, `<Switch>`, etc. |
 | `registerFancyComponents()` | Pre-registers a curated component whitelist for fancy-screens schema mode |
@@ -93,7 +94,22 @@ Deliberately **not** here: caching page responses / a service worker that interc
 shows groups of cards once (release notes after an update, a welcome, new
 posts) and remembers the newest one each person saw. By default that memory is
 the browser's `localStorage`, so a second device shows everything again.
-`createHttpStorage` keeps it on the account instead, behind one route:
+fancy-inertia's `WhatsNew` keeps it on the account instead, behind one route:
+
+```tsx
+import { WhatsNew } from "@particle-academy/fancy-inertia/whats-new";
+
+// Signed in: the account. A guest: null, for this browser's localStorage.
+<WhatsNew load={load} seenUrl={user ? "/me/seen-notices" : null} />
+```
+
+It is fancy-whats-new's `WhatsNew` (an optional peer: `npm i
+@particle-academy/fancy-whats-new`) with one extra prop. Every other prop is the
+core's. Changing `seenUrl` remounts the notice, so signing in reads the
+account's cursor; an explicit `storage` wins.
+
+The store underneath is `createHttpStorage`, from the same entry, for building
+your own:
 
 ```tsx
 import { WhatsNew } from "@particle-academy/fancy-whats-new";
@@ -102,7 +118,6 @@ import { createHttpStorage } from "@particle-academy/fancy-inertia/whats-new";
 // Module level (or useMemo): one store, not a new one per render.
 const accountStorage = createHttpStorage({ url: "/me/seen-notices" });
 
-// Signed in: the account. A guest: leave `storage` unset for localStorage.
 <WhatsNew load={load} storage={user ? accountStorage : undefined} />
 ```
 

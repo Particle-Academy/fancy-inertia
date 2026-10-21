@@ -5,6 +5,38 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-10-21
+
+**Nothing to do on upgrade, unless you import `createHttpStorage` WITHOUT
+having `@particle-academy/fancy-whats-new` installed.** The `/whats-new` entry
+now imports it, so install it (`npm i @particle-academy/fancy-whats-new`); every
+app using `createHttpStorage` for its intended purpose already has it. The
+package root and every other entry are unchanged.
+
+### Added
+
+- **`WhatsNew`, on `@particle-academy/fancy-inertia/whats-new`.**
+  `@particle-academy/fancy-whats-new`'s notice with fancy-inertia's storage
+  default: pass `seenUrl` (the per-account route `createHttpStorage` talks to)
+  and "seen" lives on the account; leave it `null` for a guest and it is the
+  core's localStorage. Changing `seenUrl` remounts the notice, so signing in
+  reads the account's cursor rather than the browser's. An explicit `storage`
+  wins; every other prop is the core's and passes straight through. Its types
+  are re-exported from the same entry.
+
+  ```tsx
+  import { WhatsNew } from "@particle-academy/fancy-inertia/whats-new";
+
+  <WhatsNew load={load} seenUrl={user ? "/me/seen-notices" : null} />
+  ```
+
+### Changed
+
+- **`@particle-academy/fancy-whats-new` is an optional peer (`>=0.1.0 <2.0`).**
+  Only the `/whats-new` entry imports it; the root never does (a test pins it).
+  The dev lockfile now resolves `@particle-academy/fancy-app-update` 0.7.0 (was
+  0.3.0), which fancy-whats-new requires; the runtime range is unchanged.
+
 ### Security
 
 - **Dev toolchain only — no runtime change, nothing for consumers to do.** The

@@ -22,6 +22,7 @@ export default defineConfig({
     "@inertiajs/react/server",
     "@particle-academy/fancy-app-update",
     "@particle-academy/fancy-app-update/stack",
+    "@particle-academy/fancy-whats-new",
     "@particle-academy/fancy-pwa",
     "@particle-academy/react-fancy",
     "@particle-academy/fancy-echarts",

@@ -1,19 +1,61 @@
 /**
  * @particle-academy/fancy-inertia/whats-new
  *
- * A per-account "last seen" store for `@particle-academy/fancy-whats-new`'s
- * `storage` prop: the cursor lives on the person's account, behind one route of
- * your app, so it follows them across devices. Pure `fetch`, no import of
- * fancy-whats-new: the store is `{ load, save }`, which is all `storage` asks for.
+ * `@particle-academy/fancy-whats-new`'s `WhatsNew`, with a per-account store as
+ * its default: pass `seenUrl` (your route, see the README) and "seen" lives on
+ * the person's account, so it follows them across devices; leave it out for a
+ * guest and it is the core's localStorage. Every other prop is the core's.
  *
  * ```tsx
- * import { WhatsNew } from "@particle-academy/fancy-whats-new";
- * import { createHttpStorage } from "@particle-academy/fancy-inertia/whats-new";
+ * import { WhatsNew } from "@particle-academy/fancy-inertia/whats-new";
  *
- * const storage = createHttpStorage({ url: "/me/seen-notices" });
- * <WhatsNew load={load} storage={storage} />
+ * <WhatsNew load={load} seenUrl={user ? "/me/seen-notices" : null} />
  * ```
+ *
+ * `createHttpStorage` is the store itself, for building your own.
  */
+import { createElement, useMemo } from "react";
+import {
+  WhatsNew as CoreWhatsNew,
+  type WhatsNewProps as CoreWhatsNewProps,
+} from "@particle-academy/fancy-whats-new";
+
+export type {
+  WhatsNewApi,
+  WhatsNewCard,
+  WhatsNewCardAction,
+  WhatsNewCardState,
+  WhatsNewGroup,
+  WhatsNewLabels,
+  WhatsNewLoader,
+  WhatsNewPosition,
+  WhatsNewStorage,
+  MissedMode,
+  FirstVisitMode,
+} from "@particle-academy/fancy-whats-new";
+
+export interface WhatsNewProps extends CoreWhatsNewProps {
+  /**
+   * The per-account route `createHttpStorage` talks to (GET `{ seen }`, PUT
+   * `{ seen }`). Set it for a signed-in person, `null` / unset for a guest
+   * (the core's localStorage). Changing it remounts the notice, so signing in
+   * reads the account's cursor. An explicit `storage` wins.
+   */
+  seenUrl?: string | null;
+}
+
+/**
+ * fancy-whats-new's notice with fancy-inertia's storage default. Mount it once,
+ * near the root.
+ */
+export function WhatsNew({ seenUrl, storage, ...props }: WhatsNewProps) {
+  // One store per URL, not one per render: the core reads its store once.
+  const account = useMemo(() => (seenUrl ? createHttpStorage({ url: seenUrl }) : undefined), [seenUrl]);
+
+  // Keyed on the URL: the core loads "seen" once per mount, so a sign-in (null
+  // -> url) must remount it to ask the account instead of this browser.
+  return createElement(CoreWhatsNew, { key: seenUrl ?? "", ...props, storage: storage ?? account });
+}
 
 /** The shape fancy-whats-new's `storage` prop takes. */
 export interface CursorStorage {
