@@ -5,6 +5,10 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+### Security
+
+- Update Vitest to 4.1.12 for security fixes; dev toolchain only, nothing to do.
+
 ## [0.14.0] — 2026-10-21
 
 **Nothing to do on upgrade, unless you import `createHttpStorage` WITHOUT
