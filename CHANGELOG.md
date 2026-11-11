@@ -5,6 +5,13 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+### Changed
+
+- **Releases need a lab-run certificate.** `publish.yml` gains a read-only
+  `lab-certificate` job that every publishing job needs: a tag is published only
+  when the fancy-labs lab has certified that exact version and commit. Consumers
+  do nothing; this changes how releases are cut, not what the package does.
+
 ## [0.14.1] — 2026-11-01
 
 ### Changed
@@ -236,7 +243,6 @@ package root and every other entry are unchanged.
   **What you must do:** nothing. Widening only adds candidates, so whatever you
   have installed still resolves.
 
-
 ## [0.10.0] — 2026-08-07
 
 ### Changed
@@ -256,7 +262,6 @@ package root and every other entry are unchanged.
 ### Why
 
 These are the kit 0.5 platform floors, applied across every package at once so a consumer never has to resolve a mix. **No API changed, nothing was removed, nothing was renamed** — only what the package requires.
-
 
 ## [0.9.7] — 2026-08-03
 
