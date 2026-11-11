@@ -56,7 +56,14 @@ php artisan inertia:start-ssr   # dev: alongside your web server
 
 On a server, run it as a long-lived process (e.g. supervisor) and set
 `INERTIA_SSR_ENABLED=true`. `config('inertia.ssr.url')` must match the
-`createFancyServer({ port })` (default `13714`).
+`createFancyServer({ port, host })` (defaults `13714` and `127.0.0.1`).
+
+The SSR server listens on **loopback only** unless you pass `host`. It renders
+whatever page JSON it is sent, so it should answer only the app server on the
+same machine, which is where Laravel's default `config('inertia.ssr.url')`
+(`http://127.0.0.1:13714`) points. If your app server reaches it from another
+host or container, pass that interface (for example `host: "0.0.0.0"`) and keep
+the port off any public network.
 
 > The SSR bundle imports `@particle-academy/fancy-inertia/server`, which pulls in
 > `react-dom/server` — a **server-only** entry. Never import `/server` from client code.

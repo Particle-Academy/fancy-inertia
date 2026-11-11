@@ -1,6 +1,7 @@
 import { createInertiaApp } from "@inertiajs/react";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
+import { Server } from "node:http";
 import type { ComponentType, ReactElement } from "react";
 import { buildFancyAppTree, type FancyAppTreeOptions } from "../buildFancyAppTree";
 
@@ -19,6 +20,55 @@ export interface CreateFancyServerOptions
     | { default: ComponentType };
   /** SSR cluster port. Default `13714` (matches `config('inertia.ssr.url')`). */
   port?: number;
+  /**
+   * The interface the SSR server listens on. Default `127.0.0.1`, loopback
+   * only, which is where Laravel's default `config('inertia.ssr.url')` sends
+   * render requests. The SSR server renders whatever page JSON it is sent, so
+   * do not widen this unless the app server reaches it over a network you
+   * trust: `"0.0.0.0"` is every IPv4 interface, `"::"` every interface.
+   *
+   * Applied on every supported Inertia line, including the 1.x and 2.x
+   * releases whose SSR server takes no host of its own.
+   */
+  host?: string;
+}
+
+/** Loopback: the SSR server is for the app server on the same machine. */
+const DEFAULT_SSR_HOST = "127.0.0.1";
+
+/**
+ * Run `start` with every `http.Server#listen` it makes bound to `host`.
+ *
+ * Inertia's SSR server decides the interface itself: 3.x defaults it to
+ * "0.0.0.0" (newer 3.x releases take a `host` option, older ones do not) and
+ * 1.x / 2.x call `listen(port)` with none, which is every interface. Passing
+ * `host` through the options is therefore not enough on its own. Inertia calls
+ * `listen` synchronously from `createServer`, so the override lasts exactly that
+ * call and is removed in `finally`: no other server in the process is touched.
+ */
+function withListenHost(host: string, start: () => void): void {
+  const proto = Server.prototype as unknown as Record<string, unknown>;
+  const hadOwn = Object.prototype.hasOwnProperty.call(proto, "listen");
+  const ownListen = proto.listen;
+  const inherited = Server.prototype.listen;
+
+  proto.listen = function (this: Server, ...args: unknown[]) {
+    const [first, ...rest] = args;
+    if (typeof first === "number" || (typeof first === "string" && /^\d+$/.test(first))) {
+      return inherited.call(this, { port: Number(first), host }, ...rest.filter((a) => typeof a === "function"));
+    }
+    if (first && typeof first === "object" && !("path" in first)) {
+      return inherited.call(this, { ...first, host }, ...rest);
+    }
+    return inherited.apply(this, args);
+  };
+
+  try {
+    start();
+  } finally {
+    if (hadOwn) proto.listen = ownListen;
+    else delete proto.listen;
+  }
 }
 
 /**
@@ -50,7 +100,22 @@ export function createFancyServer({
   appRoot,
   transition,
   port = DEFAULT_SSR_PORT,
+  host = DEFAULT_SSR_HOST,
 }: CreateFancyServerOptions): void {
+  withListenHost(host, () => startServer({ resolve, providers, appRoot, transition, port, host }));
+}
+
+function startServer({
+  resolve,
+  providers,
+  appRoot,
+  transition,
+  port,
+  host,
+}: CreateFancyServerOptions & { port: number; host: string }): void {
+  // The options object, not the bare port: a host-aware Inertia reads `host`
+  // from it, and 1.x / 2.0 pass it straight to `listen`, which accepts it.
+  const options = { port, host };
   createServer(
     (page) =>
       createInertiaApp({
@@ -66,6 +131,6 @@ export function createFancyServer({
             transition,
           }) as ReactElement,
       }),
-    port,
+    options,
   );
 }

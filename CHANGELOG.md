@@ -5,6 +5,33 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-11-11
+
+**Read the Security entry if your app server reaches the SSR process from a
+different machine or container.** Everyone else: nothing to do.
+
+### Security
+
+- **The SSR server no longer listens on every network interface.**
+  `createFancyServer` passed Inertia only a port, and Inertia then bound all
+  interfaces (`0.0.0.0` on Inertia 3, no host at all on 1.x and 2.x). So any
+  machine that could reach yours on port 13714 could send the SSR process page
+  data and have it rendered. It now listens on `127.0.0.1` by default, on every
+  supported Inertia line, including the releases whose SSR server has no `host`
+  option of its own. Checked against the real Inertia 3.6.1 server: with the
+  default, only `127.0.0.1` answers; with `host: "0.0.0.0"`, every interface
+  does. **BREAKING only if your app server is on another host or in another
+  container from the SSR process.** **Consumer action:** if so, pass the
+  interface it should listen on, for example `createFancyServer({ ..., host:
+  "0.0.0.0" })`, and keep that port off any public network. If Laravel and the
+  SSR process run on the same machine (the default `inertia.ssr.url` is
+  `http://127.0.0.1:13714`), do nothing.
+
+### Added
+
+- **`host` option on `createFancyServer`** (default `127.0.0.1`), the interface
+  the SSR server listens on. See Security above.
+
 ### Changed
 
 - **Releases need a lab-run certificate.** `publish.yml` gains a read-only
