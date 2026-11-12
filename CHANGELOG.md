@@ -5,6 +5,8 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+## [0.16.0] — 2026-11-12
+
 ### Added
 
 - **`createFancyServer({ title })`**, the same title callback
