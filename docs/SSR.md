@@ -65,6 +65,23 @@ same machine, which is where Laravel's default `config('inertia.ssr.url')`
 host or container, pass that interface (for example `host: "0.0.0.0"`) and keep
 the port off any public network.
 
+**The page title.** If the client entry passes `createInertiaApp({ title })`,
+pass the same callback to `createFancyServer({ title })`. Without it the first
+byte's `<title>` is the page's title unformatted, and a page that sets no title
+has none. Return a fallback for an empty title (for example
+``(t) => (t ? `${t} - App` : "App")``) and every server-rendered page gets exactly
+one. In the root Blade template, put the no-SSR fallback inside Inertia's head
+component, so it is used only when SSR does not answer, never beside the SSR
+head:
+
+```blade
+<x-inertia::head>
+    <title>{{ config('app.name') }}</title>
+</x-inertia::head>
+```
+
+A separate `<title>` next to `@inertiaHead` gives every server-rendered page two.
+
 > The SSR bundle imports `@particle-academy/fancy-inertia/server`, which pulls in
 > `react-dom/server` — a **server-only** entry. Never import `/server` from client code.
 

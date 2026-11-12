@@ -5,6 +5,19 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+### Added
+
+- **`createFancyServer({ title })`**, the same title callback
+  `createInertiaApp({ title })` takes in the client entry. Without it the
+  server rendered every page with Inertia's default, the identity: the first
+  byte said "Log in" where the browser said "Log in - App", and a page that
+  sets no title had no `<title>` in the server-rendered head at all, because
+  Inertia emits a default title only when the callback returns one for an empty
+  title (lab finding K21). Optional; omitting it changes nothing. **Consumer
+  action:** pass the callback your client entry already uses. If your root
+  template puts a `<title>` beside `@inertiaHead`, move it inside
+  `<x-inertia::head>` so it is only the no-SSR fallback; see `docs/SSR.md`.
+
 ## [0.15.0] — 2026-11-11
 
 **Read the Security entry if your app server reaches the SSR process from a

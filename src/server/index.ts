@@ -31,6 +31,18 @@ export interface CreateFancyServerOptions
    * releases whose SSR server takes no host of its own.
    */
   host?: string;
+  /**
+   * Format the page title, exactly as `createInertiaApp({ title })` does in
+   * the client entry. Pass the SAME callback, or the first byte's `<title>`
+   * differs from the one the browser shows.
+   *
+   * It is also what gives a page that sets no title a title on the first
+   * byte: Inertia emits one in the server-rendered head only when this returns
+   * something for an empty title, e.g. ``(t) => (t ? `${t} - App` : "App")``.
+   * Omit it and the page's own title is used unformatted, and a page without
+   * one has none.
+   */
+  title?: (title: string) => string;
 }
 
 /** Loopback: the SSR server is for the app server on the same machine. */
@@ -101,8 +113,11 @@ export function createFancyServer({
   transition,
   port = DEFAULT_SSR_PORT,
   host = DEFAULT_SSR_HOST,
+  title,
 }: CreateFancyServerOptions): void {
-  withListenHost(host, () => startServer({ resolve, providers, appRoot, transition, port, host }));
+  withListenHost(host, () =>
+    startServer({ resolve, providers, appRoot, transition, port, host, title }),
+  );
 }
 
 function startServer({
@@ -112,6 +127,7 @@ function startServer({
   transition,
   port,
   host,
+  title,
 }: CreateFancyServerOptions & { port: number; host: string }): void {
   // The options object, not the bare port: a host-aware Inertia reads `host`
   // from it, and 1.x / 2.0 pass it straight to `listen`, which accepts it.
@@ -122,6 +138,8 @@ function startServer({
         page,
         render: renderToString,
         resolve,
+        // Only when given: Inertia's own default stays in charge otherwise.
+        ...(title ? { title } : {}),
         setup: ({ App, props }) =>
           buildFancyAppTree({
             App,
