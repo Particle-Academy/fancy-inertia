@@ -16,11 +16,11 @@ export default function PackagePage({ pkg }) {
   return (
     <>
       <Seo
-        title={`${pkg.name} — Fancy UI`}
+        title={`${pkg.name} — Fancy Dev Kit`}
         description={pkg.tagline}
         canonical={pkg.url}
         image={pkg.ogImage}
-        siteName="Fancy UI"
+        siteName="Fancy Dev Kit"
         jsonLd={[
           softwareSourceCode({
             name: pkg.name,
@@ -58,9 +58,9 @@ import { SeoProvider, defineSeo } from "@particle-academy/fancy-inertia/seo";
 
 const seo = defineSeo({
   siteUrl: "https://ui.particle.academy",   // enables auto-canonical + absolute OG image
-  siteName: "Fancy UI",
-  titleTemplate: "%s | Fancy UI",            // applied to a page's title
-  defaultTitle: "Fancy UI for React, Inertia, and Laravel",  // used verbatim when a page sets none
+  siteName: "Fancy Dev Kit",
+  titleTemplate: "%s | Fancy Dev Kit",            // applied to a page's title
+  defaultTitle: "Fancy Dev Kit for React, Inertia, and Laravel",  // used verbatim when a page sets none
   defaultDescription: "React, Inertia, and Laravel UI components for Human+ UX.",
   defaultImage: "/og/home.png",
   locale: "en_US",
@@ -75,7 +75,7 @@ const seo = defineSeo({
 // A package page now needs almost nothing — title is templated, canonical +
 // og:image + site_name + locale all come from the provider:
 <Seo title={pkg.name} description={pkg.tagline} jsonLd={[/* … */]} />
-// → <title>react-fancy | Fancy UI</title>, canonical https://ui.particle.academy/packages/react-fancy, …
+// → <title>react-fancy | Fancy Dev Kit</title>, canonical https://ui.particle.academy/packages/react-fancy, …
 ```
 
 Match `siteUrl` to your `fancy-seo` `url` config so the client canonical agrees
@@ -112,8 +112,8 @@ import {
   article, breadcrumbList, faqPage, howTo, collectionPage, product,
 } from "@particle-academy/fancy-inertia/seo";
 
-website({ name: "Fancy UI", url: "https://ui.particle.academy/", searchUrlTemplate: "https://ui.particle.academy/search?q={search_term_string}" });
-softwareApplication({ name: "Fancy UI", url: "…", applicationCategory: "DeveloperApplication", operatingSystem: "Web", price: "0" });
+website({ name: "Fancy Dev Kit", url: "https://ui.particle.academy/", searchUrlTemplate: "https://ui.particle.academy/search?q={search_term_string}" });
+softwareApplication({ name: "Fancy Dev Kit", url: "…", applicationCategory: "DeveloperApplication", operatingSystem: "Web", price: "0" });
 softwareSourceCode({ name: "react-fancy", url: "…", codeRepository: "https://github.com/Particle-Academy/react-fancy", programmingLanguage: "TypeScript" });
 breadcrumbList([{ name: "Packages", url: "/packages" }, { name: "react-fancy", url: "/packages/react-fancy" }]);
 article({ headline: "…", url: "…", datePublished: "2026-01-01", authorName: "…" });

@@ -5,6 +5,10 @@ entry before taking one; each breaking change says what you must do.
 
 ## [Unreleased]
 
+### Changed
+
+- Rebranded the display name to Fancy Dev Kit (README and package description). Package names, the npm scope, URLs and the `fancy-ui` MCP id are unchanged.
+
 ## [0.16.0] — 2026-11-12
 
 ### Added
