@@ -7,10 +7,10 @@
 > **Not Laravel-only.** This package has zero Laravel/PHP runtime dependencies — Inertia is just a router that mounts React components, so it works with any Inertia server adapter (Laravel, Rails, Adonis, …). The Laravel-flavoured pieces — deduping the head against `fancy-seo`'s Blade helper, and running SSR via `php artisan inertia:start-ssr` — are optional integrations, not requirements.
 
 <!-- fancy-agents-note:start -->
-> **For agents.** Every Fancy package, this one included, is listed on the
-> Fancy MCP catalog server at `https://ui.particle.academy/mcp` (streamable HTTP, no API key;
-> MCP id `fancy-ui`), with install commands and docs. How an agent installs
-> and uses this package is in [AGENTS.md](https://github.com/Particle-Academy/fancy-inertia/blob/main/AGENTS.md).
+> **For agents.** This package is listed on the Fancy MCP catalog server at
+> `https://ui.particle.academy/mcp` (streamable HTTP, no API key; MCP id `fancy-ui`),
+> with install commands and docs, alongside the rest of the kit. How an agent
+> installs and uses this package is in [AGENTS.md](https://github.com/Particle-Academy/fancy-inertia/blob/main/AGENTS.md).
 <!-- fancy-agents-note:end -->
 
 ## Why this exists
